@@ -343,6 +343,7 @@ export default function Home() {
         isOpen={isAddBookOpen}
         onClose={() => setIsAddBookOpen(false)}
         onSuccess={loadBooks}
+        existingBooks={books}
       />
 
       <BookDetailModal

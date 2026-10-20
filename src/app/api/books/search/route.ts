@@ -7,7 +7,11 @@ export interface BookSearchResult {
   totalPages: number;
   coverUrl: string | null;
   publishedYear: string | null;
-  source: "openlibrary" | "googlebooks";
+  language: string;
+  format: "Físico" | "eBook" | "Audiobook";
+  description: string | null;
+  series?: string | null;
+  isbn?: string | null;
 }
 
 interface OpenLibraryDoc {
@@ -17,27 +21,238 @@ interface OpenLibraryDoc {
   number_of_pages_median?: number;
   first_publish_year?: number;
   cover_i?: number;
+  language?: string[];
+  series_name?: string[];
+  series_position?: string;
+  isbn?: string[];
+  first_sentence?: string[] | { value: string };
 }
+
+// Catálogo de referência das edições brasileiras consagradas
+const PORTUGUESE_CANONICAL_BOOKS: Record<
+  string,
+  {
+    title: string;
+    author: string;
+    totalPages: number;
+    coverUrl: string;
+    language: string;
+    format: "Físico" | "eBook";
+    series?: string;
+    description?: string;
+  }[]
+> = {
+  harry: [
+    {
+      title: "Box Harry Potter Tradicional (Harry Potter, #1)",
+      author: "J.K. Rowling",
+      totalPages: 3067,
+      coverUrl: "https://covers.openlibrary.org/b/id/15155833-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Harry Potter, #1",
+      description: "Edição comemorativa especial em box com a saga completa de Harry Potter pela Editora Rocco.",
+    },
+    {
+      title: "Harry Potter e a Câmara Secreta (Harry Potter, #2)",
+      author: "J.K. Rowling",
+      totalPages: 252,
+      coverUrl: "https://covers.openlibrary.org/b/id/15158664-M.jpg",
+      language: "Português",
+      format: "Físico",
+      series: "Harry Potter, #2",
+      description: "Carros voadores, aranhas que falam e um aviso mortal escrito com sangue nas paredes de Hogwarts.",
+    },
+    {
+      title: "Harry Potter and the Sorcerer's Stone (Harry Potter, #1)",
+      author: "J.K. Rowling",
+      totalPages: 309,
+      coverUrl: "https://covers.openlibrary.org/b/id/10521270-M.jpg",
+      language: "Inglês",
+      format: "Físico",
+      series: "Harry Potter, #1",
+      description: "The classic first book in the global bestselling Harry Potter series.",
+    },
+    {
+      title: "Harry Potter e a Pedra Filosofal (Harry Potter, #1)",
+      author: "J.K. Rowling",
+      totalPages: 223,
+      coverUrl: "https://covers.openlibrary.org/b/id/14512053-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Harry Potter, #1",
+      description: "Harry Potter descobre no seu 11º aniversário que é um bruxo e é convidado a ingressar em Hogwarts.",
+    },
+    {
+      title: "Harry Potter e o Prisioneiro de Azkaban (Harry Potter, #3)",
+      author: "J.K. Rowling",
+      totalPages: 348,
+      coverUrl: "https://covers.openlibrary.org/b/id/10580435-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Harry Potter, #3",
+      description: "Sirius Black fugiu de Azkaban e os dementadores estão rondando Hogwarts.",
+    },
+  ],
+  potter: [
+    {
+      title: "Harry Potter e o Cálice de Fogo (Harry Potter, #4)",
+      author: "J.K. Rowling",
+      totalPages: 536,
+      coverUrl: "https://covers.openlibrary.org/b/id/12059372-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Harry Potter, #4",
+    },
+    {
+      title: "Harry Potter e a Ordem da Fênix (Harry Potter, #5)",
+      author: "J.K. Rowling",
+      totalPages: 704,
+      coverUrl: "https://covers.openlibrary.org/b/id/15158666-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Harry Potter, #5",
+    },
+  ],
+  senhor: [
+    {
+      title: "O Senhor dos Anéis: A Sociedade do Anel (#1)",
+      author: "J.R.R. Tolkien",
+      totalPages: 464,
+      coverUrl: "https://covers.openlibrary.org/b/id/8389364-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "O Senhor dos Anéis, #1",
+    },
+    {
+      title: "O Senhor dos Anéis: As Duas Torres (#2)",
+      author: "J.R.R. Tolkien",
+      totalPages: 416,
+      coverUrl: "https://covers.openlibrary.org/b/id/8389367-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "O Senhor dos Anéis, #2",
+    },
+  ],
+  percy: [
+    {
+      title: "O Ladrão de Raios (Percy Jackson, #1)",
+      author: "Rick Riordan",
+      totalPages: 400,
+      coverUrl: "https://covers.openlibrary.org/b/id/10521257-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Percy Jackson, #1",
+    },
+    {
+      title: "O Mar de Monstros (Percy Jackson, #2)",
+      author: "Rick Riordan",
+      totalPages: 304,
+      coverUrl: "https://covers.openlibrary.org/b/id/10521258-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "Percy Jackson, #2",
+    },
+  ],
+};
+
+// Dicionário de títulos internacionais para português
+const FAMOUS_TRANSLATIONS: Record<string, string> = {
+  "harry potter and the philosopher's stone": "Harry Potter e a Pedra Filosofal (Harry Potter, #1)",
+  "harry potter and the sorcerer's stone": "Harry Potter e a Pedra Filosofal (Harry Potter, #1)",
+  "harry potter and the chamber of secrets": "Harry Potter e a Câmara Secreta (Harry Potter, #2)",
+  "harry potter and the prisoner of azkaban": "Harry Potter e o Prisioneiro de Azkaban (Harry Potter, #3)",
+  "harry potter and the goblet of fire": "Harry Potter e o Cálice de Fogo (Harry Potter, #4)",
+  "harry potter and the order of the phoenix": "Harry Potter e a Ordem da Fênix (Harry Potter, #5)",
+  "harry potter and the half-blood prince": "Harry Potter e o Enigma do Príncipe (Harry Potter, #6)",
+  "harry potter and the deathly hallows": "Harry Potter e as Relíquias da Morte (Harry Potter, #7)",
+  "the hobbit": "O Hobbit",
+  "the fellowship of the ring": "O Senhor dos Anéis: A Sociedade do Anel (#1)",
+  "the two towers": "O Senhor dos Anéis: As Duas Torres (#2)",
+  "the return of the king": "O Senhor dos Anéis: O Retorno do Rei (#3)",
+  "the hunger games": "Jogos Vorazes (Jogos Vorazes, #1)",
+  "catching fire": "Em Chamas (Jogos Vorazes, #2)",
+  "mockingjay": "A Esperança (Jogos Vorazes, #3)",
+  "the lightning thief": "O Ladrão de Raios (Percy Jackson, #1)",
+  "the sea of monsters": "O Mar de Monstros (Percy Jackson, #2)",
+  "the little prince": "O Pequeno Príncipe",
+  "le petit prince": "O Pequeno Príncipe",
+  "animal farm": "A Revolução dos Bichos",
+  "1984": "1984",
+  "brave new world": "Admirável Mundo Novo",
+  "to kill a mockingbird": "O Sol é Para Todos",
+  "dune": "Duna (Duna, #1)",
+};
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
+    const langFilter = searchParams.get("lang") || "all"; // "all" | "pt" | "en"
+    const formatFilter = searchParams.get("format") || "all"; // "all" | "fisico" | "ebook"
 
     if (!query || query.trim().length < 2) {
       return NextResponse.json({ results: [] });
     }
 
-    const cleanQuery = query.trim();
+    const cleanQuery = query.trim().toLowerCase();
     const results: BookSearchResult[] = [];
 
-    // 1. Tentar Open Library (gratuito, sem limites agressivos, ótimo para títulos em português)
-    try {
-      const openLibUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
-        cleanQuery
-      )}&limit=8`;
+    // 0. Se for um ISBN (apenas números de 10 ou 13 dígitos)
+    const cleanedDigits = cleanQuery.replace(/\D/g, "");
+    if (cleanedDigits.length === 10 || cleanedDigits.length === 13) {
+      try {
+        const brRes = await fetch(
+          `https://brasilapi.com.br/api/isbn/v1/${cleanedDigits}`,
+          { next: { revalidate: 3600 } }
+        );
+        if (brRes.ok) {
+          const brData = await brRes.json();
+          results.push({
+            id: `isbn_${cleanedDigits}`,
+            title: brData.title,
+            author: brData.authors ? brData.authors.join(", ") : "Autor desconhecido",
+            totalPages: brData.page_count || 250,
+            coverUrl: brData.cover_url || null,
+            publishedYear: brData.year ? String(brData.year) : null,
+            language: "Português 🇧🇷",
+            format: "Físico",
+            description: brData.synopsis || null,
+            isbn: cleanedDigits,
+          });
+        }
+      } catch (err) {
+        console.warn("Falha na consulta ISBN BrasilAPI:", err);
+      }
+    }
 
-      const olRes = await fetch(openLibUrl, {
+    // 1. Checa se temos correspondência no catálogo canônico em português
+    for (const [key, books] of Object.entries(PORTUGUESE_CANONICAL_BOOKS)) {
+      if (cleanQuery.includes(key)) {
+        for (const b of books) {
+          results.push({
+            id: `canon_${b.title.toLowerCase().replace(/[^a-z0-9]/g, "_")}`,
+            title: b.title,
+            author: b.author,
+            totalPages: b.totalPages,
+            coverUrl: b.coverUrl,
+            publishedYear: null,
+            language: b.language,
+            format: b.format,
+            series: b.series,
+            description: b.description || null,
+          });
+        }
+      }
+    }
+
+    // 2. Consulta Open Library (suporta busca geral e português)
+    try {
+      const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+        cleanQuery
+      )}&limit=12&fields=key,title,author_name,number_of_pages_median,cover_i,language,first_publish_year,series_name,series_position,isbn`;
+
+      const olRes = await fetch(olUrl, {
         headers: {
           "User-Agent": "FarolApp/1.0 (farol.pampo.tech)",
           Accept: "application/json",
@@ -50,73 +265,92 @@ export async function GET(req: Request) {
         const docs: OpenLibraryDoc[] = olData.docs || [];
 
         for (const doc of docs) {
+          const rawTitle = doc.title || "";
+          const lowerTitle = rawTitle.toLowerCase().trim();
+
+          // Tradução automática de títulos consagrados se disponível
+          let finalTitle = FAMOUS_TRANSLATIONS[lowerTitle] || rawTitle;
+
+          // Se tiver informação de série e o título não contiver #, formata com a série
+          if (doc.series_name && doc.series_name[0] && !finalTitle.includes("#")) {
+            const seriesTag = doc.series_position
+              ? ` (${doc.series_name[0]}, #${doc.series_position})`
+              : ` (${doc.series_name[0]})`;
+            finalTitle = `${finalTitle}${seriesTag}`;
+          }
+
+          // Detecta se é em português
+          const hasPort =
+            doc.language?.includes("por") ||
+            doc.language?.includes("pt") ||
+            finalTitle !== rawTitle ||
+            /[ãõáéíóúâêîôûç]/i.test(finalTitle);
+
+          const language = hasPort
+            ? "Português 🇧🇷"
+            : doc.language?.includes("eng")
+            ? "Inglês"
+            : doc.language?.includes("spa")
+            ? "Espanhol"
+            : "Português";
+
           const coverUrl = doc.cover_i
             ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
             : null;
 
-          results.push({
-            id: `ol_${doc.key.replace("/works/", "")}`,
-            title: doc.title,
-            author: doc.author_name ? doc.author_name.slice(0, 2).join(", ") : "Autor desconhecido",
-            totalPages: doc.number_of_pages_median || 250,
-            coverUrl,
-            publishedYear: doc.first_publish_year ? String(doc.first_publish_year) : null,
-            source: "openlibrary",
-          });
+          // Evita duplicar se já adicionado pelo catálogo canônico
+          const isDuplicate = results.some(
+            (r) =>
+              r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+              finalTitle.toLowerCase().replace(/[^a-z0-9]/g, "")
+          );
+
+          if (!isDuplicate && finalTitle) {
+            results.push({
+              id: `ol_${doc.key.replace("/works/", "")}`,
+              title: finalTitle,
+              author: doc.author_name
+                ? doc.author_name.slice(0, 2).join(", ")
+                : "Autor desconhecido",
+              totalPages: doc.number_of_pages_median || 260,
+              coverUrl,
+              publishedYear: doc.first_publish_year
+                ? String(doc.first_publish_year)
+                : null,
+              language,
+              format: "Físico",
+              description: null,
+              isbn: doc.isbn ? doc.isbn[0] : null,
+            });
+          }
         }
       }
     } catch (olErr) {
-      console.warn("Falha ao consultar Open Library:", olErr);
+      console.warn("Falha na consulta Open Library:", olErr);
     }
 
-    // 2. Se Open Library não retornar resultados ou retornar poucos, tenta Google Books
-    if (results.length < 3) {
-      try {
-        const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
-        const keyParam = apiKey ? `&key=${apiKey}` : "";
-        const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          cleanQuery
-        )}&maxResults=5&printType=books${keyParam}`;
+    // 3. Ordenação inteligente: colocar livros em Português 🇧🇷 no topo!
+    results.sort((a, b) => {
+      const aIsPt = a.language.includes("Português") ? 1 : 0;
+      const bIsPt = b.language.includes("Português") ? 1 : 0;
+      return bIsPt - aIsPt;
+    });
 
-        const gbRes = await fetch(gbUrl, {
-          headers: { Accept: "application/json" },
-          next: { revalidate: 3600 },
-        });
-
-        if (gbRes.ok) {
-          const gbData = await gbRes.json();
-          const items = gbData.items || [];
-
-          for (const item of items) {
-            const info = item.volumeInfo || {};
-            const thumb =
-              info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || null;
-            const secureThumb = thumb ? thumb.replace(/^http:\/\//i, "https://") : null;
-
-            // Evitar duplicados por título similar
-            const alreadyExists = results.some(
-              (r) => r.title.toLowerCase() === (info.title || "").toLowerCase()
-            );
-
-            if (!alreadyExists && info.title) {
-              results.push({
-                id: `gb_${item.id}`,
-                title: info.title,
-                author: info.authors ? info.authors.slice(0, 2).join(", ") : "Autor desconhecido",
-                totalPages: info.pageCount || 250,
-                coverUrl: secureThumb,
-                publishedYear: info.publishedDate ? info.publishedDate.split("-")[0] : null,
-                source: "googlebooks",
-              });
-            }
-          }
-        }
-      } catch (gbErr) {
-        console.warn("Falha ao consultar Google Books:", gbErr);
-      }
+    // 4. Aplicação de filtros de idioma e formato
+    let filtered = results;
+    if (langFilter === "pt") {
+      filtered = filtered.filter((r) => r.language.includes("Português"));
+    } else if (langFilter === "en") {
+      filtered = filtered.filter((r) => r.language.includes("Inglês"));
     }
 
-    return NextResponse.json({ results: results.slice(0, 10) });
+    if (formatFilter === "fisico") {
+      filtered = filtered.filter((r) => r.format === "Físico");
+    } else if (formatFilter === "ebook") {
+      filtered = filtered.filter((r) => r.format === "eBook");
+    }
+
+    return NextResponse.json({ results: filtered.slice(0, 15) });
   } catch (error: unknown) {
     if (
       typeof error === "object" &&
