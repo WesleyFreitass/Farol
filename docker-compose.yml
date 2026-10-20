@@ -7,7 +7,16 @@ services:
     restart: always
     ports:
       - "3100:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - DATABASE_URL=${DATABASE_URL:-file:/app/dev.db}
+      - JWT_SECRET=${JWT_SECRET:-farol-super-secret-jwt-key-2026-production-safe}
+    volumes:
+      - farol_data:/app/data
+
+volumes:
+  farol_data:

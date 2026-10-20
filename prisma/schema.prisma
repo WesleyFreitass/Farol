@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  books        UserBook[]
+
+  @@map("users")
+}
+
+model UserBook {
+  id                String           @id @default(uuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  author            String
+  coverUrl          String?
+  totalPages        Int              @default(1)
+  currentPage       Int              @default(0)
+  currentPercentage Float            @default(0)
+  status            String           @default("READING") // READING, WANT_TO_READ, READ, DROPPED
+  notes             String?
+  rating            Int?
+  startDate         DateTime?
+  finishDate        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  sessions          ReadingSession[]
+
+  @@index([userId])
+  @@map("user_books")
+}
+
+model ReadingSession {
+  id             String    @id @default(uuid())
+  userBookId     String
+  userBook       UserBook  @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+  pageRead       Int
+  percentageRead Float
+  readDate       DateTime  @default(now())
+  comment        String?
+  emotions       String    // JSON string array of emotion IDs: '["curiosa", "empolgada"]'
+  createdAt      DateTime  @default(now())
+
+  @@index([userBookId])
+  @@map("reading_sessions")
+}

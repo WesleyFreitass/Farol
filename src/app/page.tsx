@@ -1,88 +1,356 @@
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import { Navbar } from "@/components/Navbar";
+import { AuthModal } from "@/components/AuthModal";
+import { AddBookModal } from "@/components/AddBookModal";
+import { BookCard } from "@/components/BookCard";
+import { BookDetailModal, Book } from "@/components/BookDetailModal";
+import { Plus, Search, BookOpen, Sparkles, Heart, Compass } from "lucide-react";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+}
+
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loadingBooks, setLoadingBooks] = useState(false);
+
+  // Modals state
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAddBookOpen, setIsAddBookOpen] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  // Filters & Search
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Check auth on load
+  async function checkAuth() {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
+  }
+
+  // Fetch books
+  async function loadBooks() {
+    if (!user) return;
+    setLoadingBooks(true);
+    try {
+      const res = await fetch("/api/books");
+      if (res.ok) {
+        const data = await res.json();
+        setBooks(data.books || []);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar livros:", err);
+    } finally {
+      setLoadingBooks(false);
+    }
+  }
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadBooks();
+    } else {
+      setBooks([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Reload selected book after update
+  async function handleBookUpdated() {
+    loadBooks();
+    if (selectedBook) {
+      try {
+        const res = await fetch(`/api/books/${selectedBook.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSelectedBook(data.book);
+        }
+      } catch (err) {
+        console.error("Erro ao recarregar livro:", err);
+      }
+    }
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    setSelectedBook(null);
+  }
+
+  // Compute stats
+  const stats = useMemo(() => {
+    return {
+      total: books.length,
+      reading: books.filter((b) => b.status === "READING").length,
+      read: books.filter((b) => b.status === "READ").length,
+    };
+  }, [books]);
+
+  // Filtered books
+  const filteredBooks = useMemo(() => {
+    return books.filter((book) => {
+      const matchesStatus =
+        statusFilter === "ALL" || book.status === statusFilter;
+      const matchesSearch =
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [books, statusFilter, searchQuery]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 text-slate-100 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-slate-800/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl shadow-inner shadow-amber-500/20">
-            🏮
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500/30 selection:text-amber-200">
+      {/* Background radial glow */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(217,119,6,0.15),rgba(255,255,255,0))]" />
+
+      {/* Navigation */}
+      <Navbar
+        user={user}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAddBook={() => setIsAddBookOpen(true)}
+        onLogout={handleLogout}
+        stats={stats}
+      />
+
+      {/* Main Content */}
+      <main className="relative flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {loadingUser ? (
+          <div className="flex flex-col items-center justify-center py-32 text-slate-500">
+            <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-sm">Acendendo o Farol...</p>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-orange-400 bg-clip-text text-transparent">
-              Farol
+        ) : !user ? (
+          /* Public Hero Section when not logged in */
+          <div className="flex flex-col items-center text-center justify-center py-16 sm:py-24">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-6 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>O seu guia e diário de leitura pessoal</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight">
+              Registre cada página e sinta cada{" "}
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
+                emoção
+              </span>
             </h1>
-            <p className="text-xs text-slate-400">Guia de Leitura & Avaliações</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Produção Pronta
-          </span>
-        </div>
-      </header>
 
-      {/* Hero */}
-      <main className="flex-1 max-w-5xl mx-auto px-6 py-16 flex flex-col items-center text-center justify-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium mb-6">
-          <span>✨</span>
-          <span>farol.pampo.tech</span>
-        </div>
-
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight">
-          Ilumine sua jornada de{" "}
-          <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
-            leituras
-          </span>
-        </h2>
-
-        <p className="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl leading-relaxed">
-          Registre seu progresso, avalie títulos, organize suas estantes e descubra novos livros com o Farol.
-        </p>
-
-        {/* Feature Cards Preview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-14 w-full text-left">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-            <div className="text-3xl mb-3">📚</div>
-            <h3 className="text-lg font-semibold text-slate-100">Estantes & Progresso</h3>
-            <p className="text-sm text-slate-400 mt-2">
-              Acompanhe páginas lidas, porcentagens e status de cada leitura (Lendo, Lido, Quero Ler).
+            <p className="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl leading-relaxed">
+              O Farol é o aplicativo definitivo para acompanhar suas leituras,
+              progresso por páginas ou porcentagem e registrar com precisão como cada capítulo tocou você.
             </p>
-          </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-            <div className="text-3xl mb-3">⭐</div>
-            <h3 className="text-lg font-semibold text-slate-100">Avaliações & Notas</h3>
-            <p className="text-sm text-slate-400 mt-2">
-              Dê notas de 1 a 5 estrelas, escreva resenhas detalhadas e guarde suas citações favoritas.
-            </p>
-          </div>
+            <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-xl shadow-amber-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              >
+                Começar Agora Gratuitamente
+              </button>
+            </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-            <div className="text-3xl mb-3">🔍</div>
-            <h3 className="text-lg font-semibold text-slate-100">Busca & Catálogo</h3>
-            <p className="text-sm text-slate-400 mt-2">
-              Pesquise facilmente milhões de títulos, autores, sinopses e capas de livros.
-            </p>
-          </div>
-        </div>
+            {/* Feature Highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full max-w-4xl text-left">
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl mb-4">
+                  🎭
+                </div>
+                <h3 className="text-base font-bold text-white">44 Emoções Mapeadas</h3>
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+                  De curiosa e inspirada a surtada e eufórica. Registre as nuances de cada momento com o livro.
+                </p>
+              </div>
 
-        {/* Status Box */}
-        <div className="mt-12 p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-center gap-4">
-          <span>Docker Standalone (Alpine)</span>
-          <span>•</span>
-          <span>Porta 3100 (Host)</span>
-          <span>•</span>
-          <span>SSL Let&apos;s Encrypt</span>
-          <span>•</span>
-          <span>CI/CD Automático via GitHub Actions</span>
-        </div>
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl mb-4">
+                  📊
+                </div>
+                <h3 className="text-base font-bold text-white">Progresso Flexível</h3>
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+                  Atualize sua leitura por número de páginas ou porcentagem, com data e histórico cronológico.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl mb-4">
+                  🔒
+                </div>
+                <h3 className="text-base font-bold text-white">Estante Individual</h3>
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+                  Cada usuário possui login exclusivo, estantes próprias e histórico isolado e seguro no MariaDB.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Authenticated Dashboard */
+          <div>
+            {/* Header row */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                  <span>Olá, {user.name.split(" ")[0]}!</span>
+                  <span className="text-2xl">🏮</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                  Sua estante possui {books.length} título(s). O que você vai ler hoje?
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsAddBookOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Adicionar Livro</span>
+              </button>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8 bg-slate-900/60 p-2 sm:p-3 rounded-2xl border border-slate-800/80">
+              {/* Status Tabs */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                {[
+                  { id: "ALL", label: "Todos", count: stats.total },
+                  { id: "READING", label: "Lendo", count: stats.reading },
+                  {
+                    id: "WANT_TO_READ",
+                    label: "Quero Ler",
+                    count: books.filter((b) => b.status === "WANT_TO_READ").length,
+                  },
+                  { id: "READ", label: "Lidos", count: stats.read },
+                  {
+                    id: "DROPPED",
+                    label: "Pausados",
+                    count: books.filter((b) => b.status === "DROPPED").length,
+                  },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      statusFilter === tab.id
+                        ? "bg-slate-800 text-amber-300 shadow-sm border border-slate-700/80"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/80 text-slate-400">
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Search input */}
+              <div className="relative sm:w-64">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Buscar na estante..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Bookshelf Grid */}
+            {loadingBooks ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+                <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
+                <p className="text-xs">Carregando seus livros...</p>
+              </div>
+            ) : filteredBooks.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                {filteredBooks.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    onClick={() => setSelectedBook(book)}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* Empty state */
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl bg-slate-900/40 border border-slate-800/60">
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl mb-4">
+                  📚
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {searchQuery || statusFilter !== "ALL"
+                    ? "Nenhum livro encontrado com esses filtros"
+                    : "Sua estante ainda está vazia"}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 max-w-sm mt-1.5">
+                  {searchQuery || statusFilter !== "ALL"
+                    ? "Tente buscar por outro termo ou alterar o status selecionado."
+                    : "Adicione seu primeiro livro para começar a registrar seu progresso e emoções de leitura!"}
+                </p>
+
+                <button
+                  onClick={() => setIsAddBookOpen(true)}
+                  className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Adicionar Livro Agora</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        Farol &bull; Desenvolvido para WesleyFreitass &bull; farol.pampo.tech
+      <footer className="border-t border-slate-800/80 py-6 mt-16 text-center text-xs text-slate-500">
+        <div className="flex items-center justify-center gap-2 mb-1 text-slate-400">
+          <span>Farol</span>
+          <span>&bull;</span>
+          <span>farol.pampo.tech</span>
+        </div>
+        <p>Acompanhe suas leituras, ilumine suas emoções.</p>
       </footer>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={(loggedUser) => setUser(loggedUser)}
+      />
+
+      <AddBookModal
+        isOpen={isAddBookOpen}
+        onClose={() => setIsAddBookOpen(false)}
+        onSuccess={loadBooks}
+      />
+
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={!!selectedBook}
+        onClose={() => setSelectedBook(null)}
+        onBookUpdated={handleBookUpdated}
+      />
     </div>
   );
 }
