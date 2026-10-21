@@ -16,7 +16,7 @@ nginx -t
 systemctl reload nginx
 
 # 4. Liberar porta no firewall UFW
-ufw allow 3100/tcp
+ufw allow 3120/tcp
 ufw reload
 
 # 5. Obter certificado SSL via Certbot (requer que o DNS já esteja apontando para o IP da VPS)
