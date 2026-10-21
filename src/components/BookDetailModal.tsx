@@ -7,15 +7,14 @@ import {
   Sparkles,
   BookOpen,
   MessageSquare,
-  Search,
-  Check,
   Trash2,
   Loader2,
   Clock,
   Star,
   Plus,
 } from "lucide-react";
-import { READING_EMOTIONS, EMOTIONS_BY_ID } from "@/lib/emotions";
+import { EMOTIONS_BY_ID } from "@/lib/emotions";
+import { EmotionsPickerModal } from "./EmotionsPickerModal";
 
 export interface ReadingSession {
   id: string;
@@ -58,6 +57,7 @@ export function BookDetailModal({
 }: BookDetailModalProps) {
   // Update Reading Dialog state (opened by the button inside the book page)
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isEmotionsPickerOpen, setIsEmotionsPickerOpen] = useState(false);
 
   // Mode: "page" | "percentage"
   const [mode, setMode] = useState<"page" | "percentage">("page");
@@ -66,8 +66,6 @@ export function BookDetailModal({
   const [readDate, setReadDate] = useState<string>("");
   const [comment, setComment] = useState("");
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
-  const [emotionSearch, setEmotionSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("todas");
 
   const [savingSession, setSavingSession] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -77,28 +75,11 @@ export function BookDetailModal({
     if (isOpen) {
       setReadDate(new Date().toISOString().split("T")[0]);
       setIsUpdateDialogOpen(false);
+      setIsEmotionsPickerOpen(false);
     }
   }, [isOpen]);
 
   if (!isOpen || !book) return null;
-
-  // Filter emotions based on search and category
-  const filteredEmotions = READING_EMOTIONS.filter((emotion) => {
-    const matchesSearch =
-      emotion.label.toLowerCase().includes(emotionSearch.toLowerCase()) ||
-      emotion.id.toLowerCase().includes(emotionSearch.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "todas" || emotion.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  function toggleEmotion(emotionId: string) {
-    setSelectedEmotions((prev) =>
-      prev.includes(emotionId)
-        ? prev.filter((id) => id !== emotionId)
-        : [...prev, emotionId]
-    );
-  }
 
   function handleOpenUpdateDialog() {
     setPageValue(book?.currentPage ? String(book.currentPage) : "");
@@ -338,7 +319,7 @@ export function BookDetailModal({
             </div>
           </div>
 
-          {/* THE BUTTON TO UPDATE READING INSIDE THE BOOK PAGE */}
+          {/* Button to update reading inside book page */}
           <button
             type="button"
             onClick={handleOpenUpdateDialog}
@@ -415,9 +396,17 @@ export function BookDetailModal({
                           return (
                             <span
                               key={emo.id}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-medium border ${emo.color}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#14141d] border border-zinc-800 text-zinc-200"
                             >
-                              <span>{emo.emoji}</span>
+                              {emo.isStar ? (
+                                <span className={`text-[11px] leading-none ${emo.dotColor}`}>
+                                  ★
+                                </span>
+                              ) : (
+                                <span
+                                  className={`w-2 h-2 rounded-full inline-block ${emo.dotColor.split(" ")[0]}`}
+                                />
+                              )}
                               <span>{emo.label}</span>
                             </span>
                           );
@@ -449,7 +438,7 @@ export function BookDetailModal({
         </div>
       </div>
 
-      {/* POPUP / MODAL EXCLUSIVO PARA REGISTRAR A ATUALIZAÇÃO (ABERTO PELO BOTÃO) */}
+      {/* POPUP DE ATUALIZAÇÃO DE LEITURA (ABERTO PELO BOTÃO) */}
       {isUpdateDialogOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
           <div className="relative w-full max-w-lg bg-[#0e0e13] border border-purple-500/50 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
@@ -568,78 +557,55 @@ export function BookDetailModal({
                 </div>
               </div>
 
-              {/* 44 Emotions Matrix */}
+              {/* EMOÇÕES: TRIGGER CONFORME A IMAGEM DO USUÁRIO */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                    <span>O que você sentiu lendo?</span>
-                    <span className="text-[10px] text-purple-300 font-semibold px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-800/40">
-                      {selectedEmotions.length} selecionada(s)
-                    </span>
-                  </label>
-                </div>
+                <label className="block text-xs font-semibold text-zinc-200 mb-2">
+                  Como você se sentiu?
+                </label>
 
-                {/* Search & Category Pills */}
-                <div className="flex gap-2 mb-2">
-                  <div className="relative flex-1">
-                    <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
-                    <input
-                      type="text"
-                      placeholder="Buscar emoção..."
-                      value={emotionSearch}
-                      onChange={(e) => setEmotionSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-purple-500"
-                    />
+                {selectedEmotions.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEmotionsPickerOpen(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#14141d] border-2 border-purple-500/70 hover:border-purple-400 text-sm font-semibold text-zinc-100 hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-purple-400" />
+                    <span>Adicionar emoções</span>
+                  </button>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedEmotions.map((emoId) => {
+                      const emo = EMOTIONS_BY_ID.get(emoId);
+                      if (!emo) return null;
+                      return (
+                        <span
+                          key={emo.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-purple-500/60 bg-purple-950/40 text-purple-200 shadow-sm"
+                        >
+                          {emo.isStar ? (
+                            <span className={`text-[11px] leading-none ${emo.dotColor}`}>
+                              ★
+                            </span>
+                          ) : (
+                            <span
+                              className={`w-2 h-2 rounded-full inline-block ${emo.dotColor.split(" ")[0]}`}
+                            />
+                          )}
+                          <span>{emo.label}</span>
+                        </span>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => setIsEmotionsPickerOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14141d] border border-zinc-700/80 hover:border-purple-400 text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Alterar ({selectedEmotions.length}/6)</span>
+                    </button>
                   </div>
-
-                  <div className="flex items-center gap-1 overflow-x-auto text-[11px] pb-1">
-                    {[
-                      { id: "todas", label: "Todas (44)" },
-                      { id: "positiva", label: "Positivas" },
-                      { id: "intensa", label: "Intensas" },
-                      { id: "reflexiva", label: "Reflexivas" },
-                      { id: "densa", label: "Densas" },
-                    ].map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategoryFilter(cat.id)}
-                        className={`px-2 py-1 rounded-md whitespace-nowrap transition-colors cursor-pointer ${
-                          categoryFilter === cat.id
-                            ? "bg-purple-950 text-purple-300 font-semibold border border-purple-800/50"
-                            : "text-zinc-500 hover:text-zinc-300"
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Chips Grid */}
-                <div className="max-h-40 overflow-y-auto p-2 bg-zinc-950 border border-zinc-800/90 rounded-xl flex flex-wrap gap-1.5">
-                  {filteredEmotions.map((emotion) => {
-                    const isSelected = selectedEmotions.includes(emotion.id);
-                    return (
-                      <button
-                        key={emotion.id}
-                        type="button"
-                        onClick={() => toggleEmotion(emotion.id)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
-                          isSelected
-                            ? `${emotion.color} ring-1 ring-purple-400 font-semibold shadow-sm`
-                            : "bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
-                        }`}
-                      >
-                        <span>{emotion.emoji}</span>
-                        <span>{emotion.label}</span>
-                        {isSelected && (
-                          <Check className="w-3 h-3 text-purple-300 ml-0.5" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                )}
               </div>
 
               {/* Comment / Thoughts */}
@@ -686,6 +652,14 @@ export function BookDetailModal({
           </div>
         </div>
       )}
+
+      {/* MODAL DE SELEÇÃO DAS 44 EMOÇÕES (ATÉ 6 EMOÇÕES) */}
+      <EmotionsPickerModal
+        isOpen={isEmotionsPickerOpen}
+        onClose={() => setIsEmotionsPickerOpen(false)}
+        selectedEmotions={selectedEmotions}
+        onSave={(newEmotions) => setSelectedEmotions(newEmotions)}
+      />
     </div>
   );
 }

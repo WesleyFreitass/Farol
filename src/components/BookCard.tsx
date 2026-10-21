@@ -87,9 +87,16 @@ export function BookCard({ book, onClick }: BookCardProps) {
                 <span
                   key={emo.id}
                   title={emo.label}
-                  className="text-xs bg-slate-950/80 border border-slate-800 px-1.5 py-0.5 rounded-md"
+                  className="inline-flex items-center gap-1 text-[11px] bg-slate-950/80 border border-slate-800 px-2 py-0.5 rounded-full text-zinc-300"
                 >
-                  {emo.emoji}
+                  {emo.isStar ? (
+                    <span className={`text-[10px] ${emo.dotColor}`}>★</span>
+                  ) : (
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full inline-block ${emo.dotColor.split(" ")[0]}`}
+                    />
+                  )}
+                  <span>{emo.label}</span>
                 </span>
               );
             })}
