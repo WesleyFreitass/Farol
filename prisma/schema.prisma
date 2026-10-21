@@ -32,7 +32,7 @@ model UserBook {
   currentPercentage Float            @default(0)
   status            String           @default("READING") // READING, WANT_TO_READ, READ, DROPPED
   notes             String?
-  rating            Int?
+  rating            Float?
   startDate         DateTime?
   finishDate        DateTime?
   createdAt         DateTime         @default(now())

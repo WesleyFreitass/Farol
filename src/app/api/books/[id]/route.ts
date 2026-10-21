@@ -74,7 +74,10 @@ export async function PATCH(
     if (body.coverUrl !== undefined) updateData.coverUrl = body.coverUrl?.trim() || null;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.notes !== undefined) updateData.notes = body.notes;
-    if (body.rating !== undefined) updateData.rating = body.rating;
+    if (body.rating !== undefined) {
+      updateData.rating =
+        body.rating === null || body.rating === "" ? null : parseFloat(body.rating);
+    }
 
     if (body.totalPages !== undefined) {
       updateData.totalPages = Math.max(1, parseInt(body.totalPages, 10));

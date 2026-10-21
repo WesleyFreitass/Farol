@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { EMOTIONS_BY_ID } from "@/lib/emotions";
 import { EmotionsPickerModal } from "./EmotionsPickerModal";
+import { StarRating } from "./StarRating";
 
 export interface ReadingSession {
   id: string;
@@ -149,7 +150,7 @@ export function BookDetailModal({
     }
   }
 
-  async function handleUpdateRating(rating: number) {
+  async function handleUpdateRating(rating: number | null) {
     if (!book) return;
     try {
       await fetch(`/api/books/${book.id}`, {
@@ -218,27 +219,6 @@ export function BookDetailModal({
                   {book.status === "READ" && "✅ Lido"}
                   {book.status === "DROPPED" && "⏸️ Pausado"}
                 </span>
-
-                {/* Rating Stars */}
-                <div className="flex items-center gap-1 ml-auto">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => handleUpdateRating(star)}
-                      title={`Avaliar com ${star} estrelas`}
-                      className="cursor-pointer text-slate-600 hover:text-amber-400 transition-colors"
-                    >
-                      <Star
-                        className={`w-4 h-4 ${
-                          (book.rating || 0) >= star
-                            ? "text-amber-400 fill-amber-400"
-                            : "text-slate-600"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -247,6 +227,16 @@ export function BookDetailModal({
               <p className="text-sm font-medium text-slate-400 mt-1">
                 por <span className="text-slate-200 font-semibold">{book.author}</span>
               </p>
+
+              {/* Avaliação com suporte a Meias Estrelas abaixo do autor */}
+              <div className="mt-2.5">
+                <StarRating
+                  rating={book.rating}
+                  onChange={handleUpdateRating}
+                  size="md"
+                  showValue
+                />
+              </div>
 
               {book.notes && (
                 <p className="text-xs text-slate-300 mt-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 italic leading-relaxed">

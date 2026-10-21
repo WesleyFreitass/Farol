@@ -62,7 +62,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
           {book.rating && book.rating > 0 && (
             <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400 text-xs font-bold">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span>{book.rating}</span>
+              <span>{book.rating.toFixed(1).replace(".0", "")}</span>
             </div>
           )}
         </div>
