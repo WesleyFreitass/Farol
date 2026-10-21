@@ -94,12 +94,21 @@ export function ProfileEditView({
         body: formData,
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Erro no upload do arquivo.");
+        if (res.status === 413) {
+          setError("O arquivo é muito grande para o servidor. Tente um GIF de até 35MB.");
+          return;
+        }
+        try {
+          const data = await res.json();
+          setError(data.error || `Erro no envio do arquivo (código ${res.status}).`);
+        } catch {
+          setError(`Erro no servidor ao enviar arquivo (código ${res.status}).`);
+        }
         return;
       }
 
+      const data = await res.json();
       if (isBg) {
         setProfileBackground(data.url);
       } else {
@@ -107,7 +116,7 @@ export function ProfileEditView({
       }
     } catch (err) {
       console.error(err);
-      setError("Falha ao enviar arquivo do computador.");
+      setError("Falha na conexão ao enviar o arquivo do computador. Verifique o tamanho do arquivo.");
     } finally {
       if (isBg) setUploadingBg(false);
       else setUploadingAvatar(false);

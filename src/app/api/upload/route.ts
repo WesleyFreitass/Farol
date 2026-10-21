@@ -20,17 +20,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify valid image / gif type
-    const mime = file.type.toLowerCase();
-    const validMimes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-    ];
+    // Verify valid image / gif type (by MIME and by filename extension fallback)
+    const mime = (file.type || "").toLowerCase();
+    const fileNameLower = (file.name || "").toLowerCase();
 
-    if (!validMimes.includes(mime)) {
+    const isGif = mime.includes("gif") || fileNameLower.endsWith(".gif");
+    const isPng = mime.includes("png") || fileNameLower.endsWith(".png");
+    const isJpg =
+      mime.includes("jpeg") ||
+      mime.includes("jpg") ||
+      fileNameLower.endsWith(".jpg") ||
+      fileNameLower.endsWith(".jpeg");
+    const isWebp = mime.includes("webp") || fileNameLower.endsWith(".webp");
+
+    if (!isGif && !isPng && !isJpg && !isWebp) {
       return NextResponse.json(
         {
           error:
@@ -40,19 +43,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Size limit: 25MB (great for full-res animated profile GIFs)
-    if (file.size > 25 * 1024 * 1024) {
+    // Size limit: 35MB (great for high-res animated wallpapers)
+    if (file.size > 35 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "O arquivo excede o limite máximo de 25MB." },
+        { error: "O arquivo excede o limite máximo de 35MB." },
         { status: 400 }
       );
     }
 
     // Determine extension
     let ext = "png";
-    if (mime.includes("gif")) ext = "gif";
-    else if (mime.includes("jpeg") || mime.includes("jpg")) ext = "jpg";
-    else if (mime.includes("webp")) ext = "webp";
+    if (isGif) ext = "gif";
+    else if (isJpg) ext = "jpg";
+    else if (isWebp) ext = "webp";
 
     const fileName = `upload_${Date.now()}_${Math.random()
       .toString(36)
