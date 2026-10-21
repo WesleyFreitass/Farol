@@ -157,28 +157,28 @@ export function WishlistView({
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Top KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Total no radar */}
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
           <span className="text-xs font-medium text-zinc-400">
             Livros Monitorados
           </span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-xl sm:text-3xl font-extrabold text-white">
               {summary.totalItems}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <ShoppingCart className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block">
             buscando o menor preço do mercado
           </span>
         </div>
 
         {/* Baixaram de preço */}
         <div
-          className={`p-5 rounded-3xl border shadow-md transition-all ${
+          className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-md transition-all ${
             summary.droppedCount > 0
               ? "bg-gradient-to-br from-emerald-950/30 via-[#12121a] to-[#12121a] border-emerald-500/40 shadow-emerald-500/5"
               : "bg-[#12121a] border-zinc-800/80"
@@ -190,19 +190,19 @@ export function WishlistView({
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             )}
           </span>
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
             <span
-              className={`text-2xl sm:text-3xl font-extrabold ${
+              className={`text-xl sm:text-3xl font-extrabold ${
                 summary.droppedCount > 0 ? "text-emerald-400" : "text-white"
               }`}
             >
               {summary.droppedCount} {summary.droppedCount === 1 ? "livro" : "livros"}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <TrendingDown className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-emerald-400/90 font-medium mt-1 block">
+          <span className="text-[10px] sm:text-[11px] text-emerald-400/90 font-medium mt-1 block">
             {summary.droppedCount > 0
               ? "🎉 Ofertas ativas mais baratas que o cadastro!"
               : "Nenhum desconto detectado no momento"}
@@ -210,63 +210,63 @@ export function WishlistView({
         </div>
 
         {/* Economia potencial */}
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
           <span className="text-xs font-medium text-zinc-400">
             Economia Potencial Total
           </span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-300">
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-xl sm:text-3xl font-extrabold text-amber-300">
               R$ {summary.totalSaved.toFixed(2)}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block">
             valor economizado se comprar os livros em promoção
           </span>
         </div>
       </div>
 
       {/* Action Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
             <span>Radar de Preços & Desejos</span>
-            <span className="text-xl">🎯</span>
+            <span className="text-lg">🎯</span>
           </h2>
           <p className="text-xs text-zinc-400 mt-0.5">
             O Farol acompanha os preços dos seus livros desejados e te avisa quando o valor cai!
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={handleCheckAll}
             disabled={checkingAll || items.length === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 transition-colors cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 transition-colors cursor-pointer disabled:opacity-50"
             title="Reconsultar preços de todos os livros agora"
           >
             <RefreshCw
               className={`w-3.5 h-3.5 ${checkingAll ? "animate-spin text-amber-400" : ""}`}
             />
-            <span>{checkingAll ? "Verificando..." : "Atualizar Preços"}</span>
+            <span>{checkingAll ? "Verificando..." : "Atualizar"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsAddOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Adicionar Livro</span>
+            <span>Adicionar</span>
           </button>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 bg-[#12121a] p-1.5 rounded-2xl border border-zinc-800/80 w-fit text-xs font-semibold">
+      <div className="flex items-center gap-1.5 bg-[#12121a] p-1.5 rounded-2xl border border-zinc-800/80 w-full sm:w-fit text-xs font-semibold overflow-x-auto scrollbar-none">
         <button
           type="button"
           onClick={() => setFilter("ALL")}

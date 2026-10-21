@@ -102,7 +102,7 @@ export function PieChart({
   const activeItem = hoveredIndex !== null ? slices.find((s) => s.index === hoveredIndex) : null;
 
   return (
-    <div className="bg-[#12121a] border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+    <div className="bg-[#12121a] border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col justify-between">
       {/* Chart Header */}
       <div className="mb-4">
         <h3 className="text-base font-bold text-white tracking-tight flex items-center justify-between">

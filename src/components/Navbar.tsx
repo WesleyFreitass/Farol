@@ -65,9 +65,9 @@ export function Navbar({
           </div>
         </div>
 
-        {/* View Switcher Tabs (Estante vs Estatísticas & Gráficos) */}
+        {/* View Switcher Tabs - Desktop (hidden on mobile, uses bottom nav) */}
         {user && onTabChange && (
-          <div className="flex items-center p-1 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 text-xs font-semibold shadow-inner">
+          <div className="hidden md:flex items-center p-1 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 text-xs font-semibold shadow-inner">
             <button
               type="button"
               onClick={() => onTabChange("shelf")}
@@ -133,23 +133,24 @@ export function Navbar({
         )}
 
         {/* User Actions */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {user ? (
             <>
               <button
                 onClick={onOpenAddBook}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Adicionar Livro</span>
-                <span className="sm:hidden">Novo</span>
+                <span className="sm:hidden text-xs font-bold">+ Livro</span>
               </button>
 
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-                <div
+              <div className="flex items-center gap-1.5 sm:gap-2 pl-2 border-l border-slate-800">
+                <button
+                  type="button"
                   onClick={() => onTabChange && onTabChange("profile")}
                   title="Ver meu perfil"
-                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-1.5 cursor-pointer transition-colors"
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl p-1.5 sm:px-3 sm:py-1.5 cursor-pointer transition-colors"
                 >
                   <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs font-bold border border-amber-500/30">
                     {user.name.charAt(0).toUpperCase()}
@@ -157,12 +158,12 @@ export function Navbar({
                   <span className="text-xs font-medium text-slate-200 max-w-[80px] sm:max-w-[100px] truncate hidden md:inline">
                     {user.name}
                   </span>
-                </div>
+                </button>
 
                 <button
                   onClick={onLogout}
                   title="Sair da conta"
-                  className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/20 cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/20 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -171,14 +172,83 @@ export function Navbar({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors cursor-pointer"
             >
               <UserIcon className="w-4 h-4 text-amber-400" />
-              <span>Entrar / Cadastrar</span>
+              <span>Entrar</span>
             </button>
           )}
         </div>
       </div>
+
+      {/* MOBILE BOTTOM NAVIGATION BAR (md:hidden) */}
+      {user && onTabChange && (
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 py-1 px-3 shadow-[0_-8px_20px_rgba(0,0,0,0.6)] safe-bottom">
+          <div className="flex items-center justify-around">
+            <button
+              type="button"
+              onClick={() => onTabChange("shelf")}
+              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all cursor-pointer relative ${
+                activeTab === "shelf"
+                  ? "text-amber-400 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Library className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">Estante</span>
+              {stats && stats.total > 0 && (
+                <span className="absolute top-1 right-2 text-[9px] font-bold px-1 rounded-full bg-slate-800 text-zinc-300 border border-slate-700">
+                  {stats.total}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("wishlist")}
+              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all cursor-pointer relative ${
+                activeTab === "wishlist"
+                  ? "text-amber-400 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Target className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">Radar</span>
+              {wishlistDroppedCount !== undefined && wishlistDroppedCount > 0 && (
+                <span className="absolute top-0.5 right-1 text-[9px] font-extrabold px-1 rounded-full bg-emerald-500 text-slate-950 animate-pulse">
+                  {wishlistDroppedCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("stats")}
+              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+                activeTab === "stats"
+                  ? "text-amber-400 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <BarChart3 className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">Gráficos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("profile")}
+              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+                activeTab === "profile"
+                  ? "text-amber-400 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <UserIcon className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">Perfil</span>
+            </button>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

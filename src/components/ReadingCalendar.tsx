@@ -175,7 +175,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
   const todayKey = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="bg-[#12121a] border border-zinc-800/80 rounded-3xl p-5 sm:p-7 shadow-xl">
+    <div className="bg-[#12121a] border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xl">
       {/* Header and Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -288,7 +288,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                   setSelectedDayKey(isSelected ? null : d.dateKey);
                 }
               }}
-              className={`min-h-[56px] sm:min-h-[70px] p-1.5 sm:p-2 rounded-2xl border transition-all flex flex-col justify-between select-none ${
+              className={`min-h-[48px] sm:min-h-[70px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none ${
                 !d.isCurrentMonth
                   ? "opacity-30 bg-zinc-950/40 border-zinc-900"
                   : d.hasReading
@@ -301,7 +301,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
               {/* Day Header */}
               <div className="flex items-center justify-between">
                 <span
-                  className={`text-xs font-bold ${
+                  className={`text-[11px] sm:text-xs font-bold ${
                     d.hasReading ? "text-amber-300" : isToday ? "text-amber-400" : "text-zinc-400"
                   }`}
                 >
@@ -309,7 +309,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                 </span>
 
                 {d.hasReading && (
-                  <span className="text-[10px] sm:text-xs">
+                  <span className="text-[9px] sm:text-xs">
                     🔥
                   </span>
                 )}
@@ -317,9 +317,9 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
 
               {/* Day Footer / Progress Pill */}
               {d.hasReading ? (
-                <div className="mt-1">
-                  <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-md truncate block">
-                    +{d.pagesRead} pág
+                <div className="mt-0.5 sm:mt-1">
+                  <span className="text-[8px] sm:text-[10px] font-bold text-amber-300 bg-amber-500/20 px-1 py-0.5 rounded sm:rounded-md truncate block">
+                    +{d.pagesRead}p
                   </span>
                 </div>
               ) : (

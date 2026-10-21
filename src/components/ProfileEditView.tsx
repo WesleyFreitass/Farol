@@ -171,34 +171,34 @@ export function ProfileEditView({
   return (
     <div className="min-h-screen max-w-6xl mx-auto rounded-3xl bg-[#17141f] border border-zinc-800/80 shadow-2xl overflow-hidden animate-in fade-in duration-200">
       {/* Top Header Bar */}
-      <div className="px-6 py-4 bg-[#1e1a29] border-b border-zinc-800 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="px-3 sm:px-6 py-3 sm:py-4 bg-[#1e1a29] border-b border-zinc-800 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={onCancel}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
             title="Voltar ao perfil"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <span>Editar Perfil</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Steam Edition
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5 sm:gap-2">
+              <span className="truncate">Editar Perfil</span>
+              <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
+                Steam
               </span>
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-[11px] text-zinc-400 truncate hidden sm:block">
               Personalize o fundo exterior, cor central, avatar animado e destaques
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="px-2.5 sm:px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
             Cancelar
           </button>
@@ -207,7 +207,7 @@ export function ProfileEditView({
             type="button"
             onClick={handleSaveAll}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -217,7 +217,7 @@ export function ProfileEditView({
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                <span>Salvar Alterações</span>
+                <span>Salvar</span>
               </>
             )}
           </button>
@@ -225,28 +225,28 @@ export function ProfileEditView({
       </div>
 
       {error && (
-        <div className="mx-6 mt-4 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+        <div className="mx-3 sm:mx-6 mt-3 sm:mt-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-300">
           {error}
         </div>
       )}
 
-      {/* Steam Configuration Container: Left Sidebar Tabs + Right Content */}
-      <div className="flex flex-col md:flex-row min-h-[750px]">
-        {/* Steam Left Sidebar Navigation */}
-        <div className="w-full md:w-64 bg-[#14111c] border-b md:border-b-0 md:border-r border-zinc-800 p-4 space-y-1 shrink-0">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 px-3 py-2">
+      {/* Steam Configuration Container: Tabs + Content */}
+      <div className="flex flex-col md:flex-row md:min-h-[750px]">
+        {/* Steam Navigation Tabs: Horizontal scroll on mobile, vertical sidebar on desktop */}
+        <div className="w-full md:w-64 bg-[#14111c] border-b md:border-b-0 md:border-r border-zinc-800 p-2 sm:p-4 flex flex-row md:flex-col overflow-x-auto gap-1 sm:space-y-1 shrink-0 scrollbar-none">
+          <div className="hidden md:block text-[11px] font-bold uppercase tracking-wider text-zinc-500 px-3 py-2">
             Configurações
           </div>
 
           {[
             {
               id: "background",
-              label: "Plano de Fundo (GIF / Foto)",
+              label: "Fundo (GIF / Foto)",
               icon: ImageIcon,
             },
             {
               id: "centerColor",
-              label: "Cor do Meio (Tema Central)",
+              label: "Cor do Meio",
               icon: Palette,
             },
             {
@@ -256,12 +256,12 @@ export function ProfileEditView({
             },
             {
               id: "featured",
-              label: "Expositor de Destaques",
+              label: "Expositor",
               icon: Star,
             },
             {
               id: "general",
-              label: "Geral (Nome & Bio)",
+              label: "Geral",
               icon: UserIcon,
             },
           ].map((tab) => {
@@ -272,7 +272,7 @@ export function ProfileEditView({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2.5 cursor-pointer ${
+                className={`whitespace-nowrap px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
                   isActive
                     ? "bg-purple-900/40 text-purple-200 border border-purple-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
@@ -286,7 +286,7 @@ export function ProfileEditView({
         </div>
 
         {/* Right Configuration Panel */}
-        <div className="flex-1 p-6 sm:p-8 overflow-y-auto">
+        <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
           {/* TAB: PLANO DE FUNDO (BACKGROUND) */}
           {activeTab === "background" && (
             <div className="max-w-2xl space-y-6">

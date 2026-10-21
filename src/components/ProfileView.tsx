@@ -168,7 +168,7 @@ export function ProfileView({
   const currentlyReading = shelfBooks.find((b) => b.status === "READING");
 
   return (
-    <div className="relative min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 -my-8 sm:-my-10 overflow-hidden select-none">
+    <div className="relative min-h-screen -mx-3 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-10 overflow-hidden select-none">
       {/* 1. OUTER BACKGROUND (WALLPAPER / ANIMATED GIF - SPANS FULL SCREEN) */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-fixed transition-all duration-700 pointer-events-none"
@@ -179,16 +179,16 @@ export function ProfileView({
 
       {/* 2. STEAM CENTER CONTAINER ("ONDE COLOCAMOS UMA COR NO MEIO") */}
       <div
-        className={`relative z-10 max-w-5xl mx-auto min-h-screen my-0 sm:my-6 p-4 sm:p-7 shadow-2xl backdrop-blur-md border-x bg-gradient-to-b ${centerTheme.bgGradient} ${centerTheme.borderClass} ${centerTheme.glowClass}`}
+        className={`relative z-10 max-w-5xl mx-auto min-h-screen my-0 sm:my-6 p-3 sm:p-7 shadow-2xl backdrop-blur-md border-x bg-gradient-to-b ${centerTheme.bgGradient} ${centerTheme.borderClass} ${centerTheme.glowClass}`}
       >
         {/* STEAM PROFILE HEADER */}
-        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pb-6 border-b border-white/10">
+        <div className="flex flex-col md:flex-row items-stretch md:items-start justify-between gap-4 sm:gap-6 pb-5 sm:pb-6 border-b border-white/10">
           {/* Left: Avatar with Steam Frame + Name/Status */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+          <div className="flex items-center sm:items-start gap-3.5 sm:gap-5 text-left">
             {/* Square Steam Avatar with Frame (Supports animated GIF!) */}
             <div className="relative shrink-0">
               <div
-                className={`w-32 h-32 sm:w-36 sm:h-36 rounded-md overflow-hidden bg-black/80 flex items-center justify-center text-4xl font-black text-amber-300 transition-all shadow-2xl ${frame.borderClass} ${frame.ringClass} ${frame.glowClass}`}
+                className={`w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-md overflow-hidden bg-black/80 flex items-center justify-center text-2xl sm:text-4xl font-black text-amber-300 transition-all shadow-2xl ${frame.borderClass} ${frame.ringClass} ${frame.glowClass}`}
               >
                 {profile.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -204,20 +204,28 @@ export function ProfileView({
             </div>
 
             {/* Steam Name, Custom Persona & Bio */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-1.5">
-                  <span>{profile.name}</span>
-                  <ChevronDown className="w-4 h-4 text-zinc-400" />
+            <div className="space-y-1 pt-0.5 min-w-0 flex-1">
+              <div className="flex items-center justify-between sm:justify-start gap-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-1.5 truncate">
+                  <span className="truncate">{profile.name}</span>
+                  <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                 </h1>
+
+                {/* Level Circle visible inline on mobile */}
+                <div className="flex md:hidden items-center gap-1.5 shrink-0 bg-black/50 px-2 py-1 rounded-full border border-amber-500/30">
+                  <span className="text-[10px] text-zinc-300 font-bold uppercase">Nível</span>
+                  <div className="w-6 h-6 rounded-full border border-amber-400 bg-amber-500/20 flex items-center justify-center text-xs font-black text-amber-300">
+                    {profile.stats.level}
+                  </div>
+                </div>
               </div>
 
-              <p className="text-xs text-zinc-300 font-medium">
+              <p className="text-[11px] sm:text-xs text-zinc-300 font-medium truncate">
                 {profile.name}
               </p>
 
               {profile.bio && (
-                <p className="text-xs text-zinc-300 max-w-md italic pt-1 leading-relaxed bg-black/30 p-2.5 rounded-lg border border-white/5">
+                <p className="text-[11px] sm:text-xs text-zinc-300 line-clamp-2 sm:line-clamp-none italic pt-0.5 leading-relaxed bg-black/30 p-2 sm:p-2.5 rounded-lg border border-white/5">
                   &ldquo;{profile.bio}&rdquo;
                 </p>
               )}
@@ -225,9 +233,9 @@ export function ProfileView({
           </div>
 
           {/* Right: Steam Level Circle + Badge Box + "Editar perfil" Button */}
-          <div className="flex flex-col items-center md:items-end gap-3.5 shrink-0">
-            {/* Steam Level Circle */}
-            <div className="flex items-center gap-2">
+          <div className="flex items-center md:items-end justify-between md:justify-start flex-row md:flex-col gap-2.5 sm:gap-3 shrink-0">
+            {/* Steam Level Circle on desktop */}
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-xs text-zinc-300 font-bold uppercase tracking-wider">
                 Nível
               </span>
@@ -237,16 +245,16 @@ export function ProfileView({
             </div>
 
             {/* Badge Showcase Box */}
-            <div className="flex items-center gap-3 bg-black/40 border border-white/10 p-2.5 rounded-xl min-w-[200px]">
-              <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-700/80 flex items-center justify-center text-xl shrink-0 shadow-inner">
+            <div className="flex items-center gap-2 sm:gap-3 bg-black/40 border border-white/10 p-2 sm:p-2.5 rounded-xl flex-1 md:flex-initial min-w-0 md:min-w-[200px]">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-zinc-900 border border-zinc-700/80 flex items-center justify-center text-base sm:text-xl shrink-0 shadow-inner">
                 {profile.stats.badgeIcon}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-white block truncate">
                   {profile.stats.badgeTitle}
                 </span>
-                <span className="text-[10px] text-zinc-400 block">
-                  {profile.stats.totalXP} XP acumulados
+                <span className="text-[10px] text-zinc-400 block truncate">
+                  {profile.stats.totalXP} XP
                 </span>
               </div>
             </div>
@@ -255,7 +263,7 @@ export function ProfileView({
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="px-4 py-1.5 rounded-md text-xs font-semibold bg-[#2a2a38] hover:bg-[#343446] text-zinc-200 border border-white/15 transition-all shadow-md cursor-pointer hover:text-white"
+              className="px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-md text-xs font-semibold bg-[#2a2a38] hover:bg-[#343446] text-zinc-200 border border-white/15 transition-all shadow-md cursor-pointer hover:text-white shrink-0 active:scale-95"
             >
               Editar perfil
             </button>
@@ -282,18 +290,18 @@ export function ProfileView({
                 </button>
               </div>
 
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {profile.featuredBooks && profile.featuredBooks.length > 0 ? (
                   <div>
                     {/* Featured Row */}
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5 mb-4">
                       {profile.featuredBooks.map((book) => (
                         <div
                           key={book.id}
                           onClick={() => onSelectBook && onSelectBook(book)}
                           className="group cursor-pointer text-center"
                         >
-                          <div className="w-full h-28 sm:h-32 rounded-lg bg-zinc-900 border border-zinc-700/80 overflow-hidden shadow-md flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <div className="w-full aspect-[2/3] rounded-lg bg-zinc-900 border border-zinc-700/80 overflow-hidden shadow-md flex items-center justify-center group-hover:scale-105 transition-transform">
                             {book.coverUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -302,10 +310,10 @@ export function ProfileView({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span>📖</span>
+                              <span className="text-xl">📖</span>
                             )}
                           </div>
-                          <span className="text-[11px] font-bold text-white block truncate mt-1 group-hover:text-amber-300">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-white block truncate mt-1 group-hover:text-amber-300">
                             {book.title}
                           </span>
                         </div>
@@ -313,28 +321,28 @@ export function ProfileView({
                     </div>
 
                     {/* Stats under showcase */}
-                    <div className="flex items-center gap-6 pt-3 border-t border-white/10 text-xs">
+                    <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-6 pt-3 border-t border-white/10 text-xs">
                       <div>
-                        <span className="text-lg font-black text-white block">
+                        <span className="text-base sm:text-lg font-black text-white block">
                           {profile.stats.booksRead}
                         </span>
-                        <span className="text-[10px] text-zinc-400 uppercase">
+                        <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                           Livros Lidos
                         </span>
                       </div>
                       <div>
-                        <span className="text-lg font-black text-white block">
+                        <span className="text-base sm:text-lg font-black text-white block">
                           {profile.stats.totalPagesRead}
                         </span>
-                        <span className="text-[10px] text-zinc-400 uppercase">
-                          Páginas Percorridas
+                        <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
+                          Páginas
                         </span>
                       </div>
                       <div>
-                        <span className="text-lg font-black text-amber-400 block">
+                        <span className="text-base sm:text-lg font-black text-amber-400 block">
                           {profile.stats.level}
                         </span>
-                        <span className="text-[10px] text-zinc-400 uppercase">
+                        <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                           Nível Steam
                         </span>
                       </div>
@@ -357,57 +365,57 @@ export function ProfileView({
             </div>
 
             {/* SHOWCASE 2: RETROSPECTIVA REPLAY FAROL (EXACTLY LIKE "REPLAY STEAM" IN SCREENSHOT) */}
-            <div className="rounded-xl bg-gradient-to-r from-teal-950/80 via-emerald-950/70 to-zinc-950/90 border border-emerald-500/30 overflow-hidden shadow-xl p-5">
-              <div className="flex items-center justify-between text-xs text-emerald-300 font-bold mb-4">
+            <div className="rounded-xl bg-gradient-to-r from-teal-950/80 via-emerald-950/70 to-zinc-950/90 border border-emerald-500/30 overflow-hidden shadow-xl p-4 sm:p-5">
+              <div className="flex items-center justify-between text-xs text-emerald-300 font-bold mb-3 sm:mb-4">
                 <span>Replay Farol 2024 / Leituras</span>
-                <span className="text-[11px] text-zinc-400 font-normal">
+                <span className="text-[10px] sm:text-[11px] text-zinc-400 font-normal">
                   Resumo das suas aventuras
                 </span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
                 {/* Big number on the left */}
                 <div className="text-center sm:text-left shrink-0">
-                  <span className="text-5xl sm:text-6xl font-black text-white leading-none">
+                  <span className="text-4xl sm:text-6xl font-black text-white leading-none">
                     {profile.stats.booksRead || shelfBooks.length}
                   </span>
-                  <span className="text-xs font-bold text-emerald-300 uppercase block tracking-wider mt-1">
+                  <span className="text-[10px] sm:text-xs font-bold text-emerald-300 uppercase block tracking-wider mt-1">
                     Livros lidos & salvos
                   </span>
                 </div>
 
                 {/* KPI trio in middle */}
-                <div className="flex items-center gap-6 text-center">
+                <div className="flex items-center gap-4 sm:gap-6 text-center">
                   <div>
-                    <span className="text-xl sm:text-2xl font-black text-white block">
+                    <span className="text-lg sm:text-2xl font-black text-white block">
                       {profile.stats.totalPagesRead}
                     </span>
-                    <span className="text-[10px] text-zinc-400 uppercase">
+                    <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Páginas
                     </span>
                   </div>
                   <div>
-                    <span className="text-xl sm:text-2xl font-black text-white block">
+                    <span className="text-lg sm:text-2xl font-black text-white block">
                       {profile.stats.totalQuotes}
                     </span>
-                    <span className="text-[10px] text-zinc-400 uppercase">
+                    <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Citações
                     </span>
                   </div>
                   <div>
-                    <span className="text-xl sm:text-2xl font-black text-amber-400 block">
+                    <span className="text-lg sm:text-2xl font-black text-amber-400 block">
                       {profile.stats.booksReading}
                     </span>
-                    <span className="text-[10px] text-zinc-400 uppercase">
-                      Lendo agora
+                    <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
+                      Lendo
                     </span>
                   </div>
                 </div>
 
                 {/* Thumbnails of books with percentage badges */}
-                <div className="flex items-center gap-2 overflow-x-auto max-w-xs">
+                <div className="flex items-center gap-2 overflow-x-auto max-w-full sm:max-w-xs py-1">
                   {shelfBooks.slice(0, 4).map((b) => (
-                    <div key={b.id} className="relative w-12 h-16 rounded overflow-hidden shrink-0 border border-white/20">
+                    <div key={b.id} className="relative w-11 h-14 sm:w-12 sm:h-16 rounded overflow-hidden shrink-0 border border-white/20">
                       {b.coverUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -420,7 +428,7 @@ export function ProfileView({
                           📖
                         </div>
                       )}
-                      <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[9px] text-center font-bold text-emerald-300 py-0.5">
+                      <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] sm:text-[9px] text-center font-bold text-emerald-300 py-0.5">
                         {b.currentPercentage}%
                       </span>
                     </div>
@@ -431,10 +439,10 @@ export function ProfileView({
 
             {/* SHOWCASE 3: EXPOSITOR DE CITAÇÕES COM PÁGINA */}
             <div className="rounded-xl bg-black/50 border border-white/10 overflow-hidden shadow-xl">
-              <div className="px-4 py-2.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
+              <div className="px-3.5 sm:px-4 py-2.5 bg-black/60 border-b border-white/10 flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-200 flex items-center gap-1.5">
                   <QuoteIcon className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Citações Marcantes do Leitor</span>
+                  <span>Citações Marcantes</span>
                 </span>
                 <button
                   type="button"
@@ -446,18 +454,18 @@ export function ProfileView({
                 </button>
               </div>
 
-              <div className="p-4 space-y-3">
+              <div className="p-3 sm:p-4 space-y-3">
                 {profile.quotes && profile.quotes.length > 0 ? (
                   profile.quotes.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-amber-500/30 transition-all flex items-start justify-between gap-3 group"
+                      className="p-3 sm:p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-amber-500/30 transition-all flex items-start justify-between gap-2.5 group"
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0 flex-1">
                         <p className="text-xs sm:text-sm text-zinc-200 italic font-serif leading-relaxed">
                           &ldquo;{item.quote}&rdquo;
                         </p>
-                        <div className="text-[11px] text-amber-300 font-semibold flex items-center gap-2">
+                        <div className="text-[10px] sm:text-[11px] text-amber-300 font-semibold flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span>&mdash; {item.bookTitle}</span>
                           {item.pageNumber && (
                             <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px]">
@@ -476,7 +484,7 @@ export function ProfileView({
                         type="button"
                         onClick={() => handleDeleteQuote(item.id)}
                         disabled={deletingQuoteId === item.id}
-                        className="p-1 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="p-1.5 text-zinc-400 hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer shrink-0"
                         title="Excluir citação"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

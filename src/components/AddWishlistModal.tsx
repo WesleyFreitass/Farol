@@ -274,8 +274,8 @@ export function AddWishlistModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl bg-[#0e0e13] border border-zinc-800/80 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl bg-[#0e0e13] border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl text-slate-100 flex flex-col max-h-[94vh]">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
           <div className="flex items-center gap-2">

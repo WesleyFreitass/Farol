@@ -226,65 +226,65 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
-          <span className="text-xs font-medium text-zinc-400">Total de Livros</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+          <span className="text-[11px] sm:text-xs font-medium text-zinc-400">Total de Livros</span>
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-xl sm:text-3xl font-extrabold text-white">
               {stats.totalBooks}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <BookOpen className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block truncate">
             {stats.readBooks} lidos &bull; {stats.readingBooks} lendo
           </span>
         </div>
 
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
-          <span className="text-xs font-medium text-zinc-400">Páginas Lidas</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+          <span className="text-[11px] sm:text-xs font-medium text-zinc-400">Páginas Lidas</span>
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-xl sm:text-3xl font-extrabold text-white">
               {stats.totalPagesRead}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
-            em {stats.totalSessions} sessões registradas
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block truncate">
+            {stats.totalSessions} sessões
           </span>
         </div>
 
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
-          <span className="text-xs font-medium text-zinc-400">Nota Média</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-400 flex items-center gap-1.5">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+          <span className="text-[11px] sm:text-xs font-medium text-zinc-400">Nota Média</span>
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-xl sm:text-3xl font-extrabold text-amber-400 flex items-center gap-1">
               <span>{stats.averageRating}</span>
-              <span className="text-sm font-normal text-zinc-500">/ 5</span>
+              <span className="text-xs font-normal text-zinc-500">/ 5</span>
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Star className="w-5 h-5 fill-amber-400" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-400" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
-            avaliações com meias estrelas
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block truncate">
+            avaliação média
           </span>
         </div>
 
-        <div className="p-5 rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
-          <span className="text-xs font-medium text-zinc-400">Sentimento Dominante</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-base sm:text-lg font-bold text-white truncate max-w-[140px]">
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#12121a] border border-zinc-800/80 shadow-md">
+          <span className="text-[11px] sm:text-xs font-medium text-zinc-400">Sentimento Top</span>
+          <div className="flex items-center justify-between mt-1 sm:mt-2">
+            <span className="text-sm sm:text-lg font-bold text-white truncate max-w-[100px] sm:max-w-[140px]">
               {stats.topEmotion ? stats.topEmotion.label : "-"}
             </span>
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
-              <Award className="w-5 h-5" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-1 block">
-            emoção mais sentida nas leituras
+          <span className="text-[10px] sm:text-[11px] text-zinc-500 mt-1 block truncate">
+            mais frequente
           </span>
         </div>
       </div>

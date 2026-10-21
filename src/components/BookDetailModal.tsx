@@ -216,18 +216,18 @@ export function BookDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-100 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl text-slate-100 max-h-[94vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+          className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Book Header Card */}
-        <div className="flex flex-col sm:flex-row gap-6 pb-6 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-5 sm:pb-6 border-b border-slate-800">
           {/* Cover */}
           <div className="w-28 sm:w-36 h-40 sm:h-52 rounded-2xl bg-gradient-to-br from-slate-800 to-indigo-950 border border-slate-700/60 overflow-hidden shrink-0 shadow-xl flex items-center justify-center text-5xl">
             {book.coverUrl ? (
@@ -375,7 +375,7 @@ export function BookDetailModal({
           <button
             type="button"
             onClick={handleOpenUpdateDialog}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-xl shadow-amber-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl sm:rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-xl shadow-amber-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Atualizar Leitura</span>
