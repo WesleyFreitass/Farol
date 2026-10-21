@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, LayoutGrid, ArrowUpDown } from "lucide-react";
 import { READING_EMOTIONS } from "@/lib/emotions";
 
@@ -22,18 +22,13 @@ export function EmotionsPickerModal({
   const [sortAlphabetical, setSortAlphabetical] = useState(false);
   const [groupByColor, setGroupByColor] = useState(true);
 
-  if (!isOpen) return null;
-
-  function toggleEmotion(id: string) {
-    if (currentSelection.includes(id)) {
-      setCurrentSelection(currentSelection.filter((item) => item !== id));
-    } else {
-      if (currentSelection.length >= 6) {
-        return; // Max 6 emotions
-      }
-      setCurrentSelection([...currentSelection, id]);
+  // Sync state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentSelection(selectedEmotions);
+      setSearch("");
     }
-  }
+  }, [isOpen, selectedEmotions]);
 
   const displayedEmotions = useMemo(() => {
     let list = [...READING_EMOTIONS];
@@ -50,10 +45,24 @@ export function EmotionsPickerModal({
     return list;
   }, [search, sortAlphabetical]);
 
+  function toggleEmotion(id: string) {
+    if (currentSelection.includes(id)) {
+      setCurrentSelection(currentSelection.filter((item) => item !== id));
+    } else {
+      if (currentSelection.length >= 6) {
+        return; // Max 6 emotions
+      }
+      setCurrentSelection([...currentSelection, id]);
+    }
+  }
+
   function handleContinue() {
     onSave(currentSelection);
     onClose();
   }
+
+  // Early return after all hooks are evaluated
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-70 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
@@ -94,7 +103,11 @@ export function EmotionsPickerModal({
             type="button"
             onClick={() => setGroupByColor(!groupByColor)}
             title="Alternar agrupamento"
-            className="p-2.5 rounded-2xl bg-[#14141d] border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            className={`p-2.5 rounded-2xl border transition-colors cursor-pointer ${
+              groupByColor
+                ? "bg-purple-950/60 border-purple-500/60 text-purple-300"
+                : "bg-[#14141d] border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white"
+            }`}
           >
             <LayoutGrid className="w-4 h-4" />
           </button>
@@ -106,7 +119,7 @@ export function EmotionsPickerModal({
             title="Ordenar alfabeticamente"
             className={`p-2.5 rounded-2xl border transition-colors cursor-pointer ${
               sortAlphabetical
-                ? "bg-purple-950 border-purple-500/60 text-purple-300"
+                ? "bg-purple-950/60 border-purple-500/60 text-purple-300"
                 : "bg-[#14141d] border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white"
             }`}
           >
