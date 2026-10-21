@@ -314,6 +314,155 @@ const FAMOUS_TRANSLATIONS: Record<string, string> = {
   "dune": "Duna (Duna, #1)",
 };
 
+function formatAuthorSlug(slug?: string): string {
+  if (!slug || slug === "N/A" || slug === "") return "Autor desconhecido";
+  const parts = slug.split("-").filter(Boolean);
+  const cap = (s: string) =>
+    ["de", "da", "do", "das", "dos", "e"].includes(s.toLowerCase())
+      ? s.toLowerCase()
+      : s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
+  if (parts.length === 1) return cap(parts[0]);
+  if (parts.length === 2) {
+    // parker-sarah -> Sarah Parker; king-stephen -> Stephen King
+    return `${cap(parts[1])} ${cap(parts[0])}`;
+  }
+  if (parts.length === 3 && parts[2].length === 1) {
+    // parker-sarah-a -> Sarah A. Parker
+    return `${cap(parts[1])} ${parts[2].toUpperCase()}. ${cap(parts[0])}`;
+  }
+  if (parts.length === 3 && parts[1].length === 1 && parts[2].length === 1) {
+    // rowling-j-k -> J. K. Rowling
+    return `${parts[1].toUpperCase()}. ${parts[2].toUpperCase()}. ${cap(parts[0])}`;
+  }
+  if (parts.length === 4 && parts[1].length === 1) {
+    // tolkien-j-r-r -> J. R. R. Tolkien
+    return `${parts[1].toUpperCase()}. ${parts[2].toUpperCase()}. ${parts[3].toUpperCase()}. ${cap(parts[0])}`;
+  }
+  return parts.map(cap).join(" ");
+}
+
+function cleanBookTitle(rawTitle: string): string {
+  if (!rawTitle) return "";
+  const cleaned = rawTitle
+    .replace(
+      /\s*[-–—]\s*(Edição especial|em capa dura|com pintura trilateral|A continuação de .*?|Colecção Argonauta|Volume \d+).*$/i,
+      ""
+    )
+    .trim();
+  return cleaned || rawTitle;
+}
+
+async function searchEstanteVirtual(query: string): Promise<BookSearchResult[]> {
+  try {
+    // Normalização inteligente de digitação em português (ex: cansao -> canção, dragoes -> dragões)
+    const normalizedQuery = query
+      .replace(/\bcansao\b/gi, "canção")
+      .replace(/\bdragoes\b/gi, "dragões")
+      .replace(/\bcaida\b/gi, "caída");
+
+    const res = await fetch(
+      `https://www.estantevirtual.com.br/busca?q=${encodeURIComponent(normalizedQuery)}`,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+        next: { revalidate: 3600 },
+      }
+    );
+
+    if (!res.ok) return [];
+
+    const html = await res.text();
+
+    // 1. Mapeia autores a partir dos dados de e-commerce da página (dataLayer)
+    const authorByItemName = new Map<string, string>();
+    const dataLayerMatch = html.match(/dataLayer\s*=\s*(\[[\s\S]*?\]);/);
+    if (dataLayerMatch) {
+      try {
+        const parsed = JSON.parse(dataLayerMatch[1]);
+        for (const entry of parsed) {
+          const impressions = entry?.ecommerce?.impressions || [];
+          for (const imp of impressions) {
+            const rawBrand = imp.item_brand || imp.brand;
+            const author = formatAuthorSlug(rawBrand);
+            if (author && imp.name) {
+              authorByItemName.set(imp.name.toLowerCase().trim(), author);
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. Extrai produtos com dados estruturados oficiais (JSON-LD ItemList)
+    const results: BookSearchResult[] = [];
+    const scriptRegex = /<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/gi;
+    let match;
+
+    while ((match = scriptRegex.exec(html)) !== null) {
+      try {
+        const data = JSON.parse(match[1]);
+        const list = data["@graph"] || (Array.isArray(data) ? data : [data]);
+        for (const node of list) {
+          if (node["@type"] === "ItemList" && Array.isArray(node.itemListElement)) {
+            for (const el of node.itemListElement) {
+              const item = el.item;
+              if (item && item.name) {
+                const rawName: string = item.name;
+                // Exclui combos/kits promocionais agrupados caso o usuário não busque por kit
+                if (
+                  !query.toLowerCase().includes("kit") &&
+                  !query.toLowerCase().includes("combo") &&
+                  /^(kit|combo|box com \d+|lote de)\b/i.test(rawName)
+                ) {
+                  continue;
+                }
+
+                const title = cleanBookTitle(rawName);
+                const author =
+                  authorByItemName.get(rawName.toLowerCase().trim()) ||
+                  formatAuthorSlug(item.brand?.name) ||
+                  "Autor consagrado";
+
+                const id =
+                  "ev_" +
+                  (item.sku ||
+                    item.url?.split("/").pop() ||
+                    Math.random().toString(36).slice(2));
+
+                results.push({
+                  id,
+                  title,
+                  author,
+                  totalPages: 320,
+                  coverUrl: item.image || null,
+                  publishedYear: null,
+                  language: "Português 🇧🇷",
+                  format: "Físico",
+                  description: null,
+                  genre: inferGenre(title, author),
+                });
+              }
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.warn("Falha ao consultar Estante Virtual:", err);
+    return [];
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -381,7 +530,24 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2. Consulta Open Library (suporta busca geral e português)
+    // 2. Consulta Catálogo Nacional (Estante Virtual - maior acervo brasileiro com lançamentos, traduções e capas)
+    try {
+      const evBooks = await searchEstanteVirtual(cleanQuery);
+      for (const b of evBooks) {
+        const isDuplicate = results.some(
+          (r) =>
+            r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+            b.title.toLowerCase().replace(/[^a-z0-9]/g, "")
+        );
+        if (!isDuplicate) {
+          results.push(b);
+        }
+      }
+    } catch (evErr) {
+      console.warn("Falha na consulta do acervo nacional:", evErr);
+    }
+
+    // 3. Consulta Open Library (suporta busca geral e obras internacionais)
     try {
       const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         cleanQuery
