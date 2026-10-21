@@ -528,24 +528,8 @@ export function InstagramStoryModal({
                   style={{ backgroundColor: currentTheme.accentColor }}
                 />
 
-                {/* 1. TOP BAR: Farol Brand + Reading Status */}
-                <div className="relative z-10 flex items-center justify-between pb-3 border-b border-white/10">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">🏮</span>
-                    <span className="text-xs font-black tracking-widest uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-                      FAROL
-                    </span>
-                  </div>
-
-                  <span
-                    className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border backdrop-blur-md ${currentTheme.badgeBg}`}
-                  >
-                    {statusLabel}
-                  </span>
-                </div>
-
-                {/* 2. CENTER: Book Cover & Details */}
-                <div className="relative z-10 my-auto flex flex-col items-center text-center space-y-3">
+                {/* CENTER: Book Cover & Details */}
+                <div className="relative z-10 my-auto flex flex-col items-center text-center space-y-3 pt-2">
                   {/* Book Cover with 3D shadow */}
                   <div className="relative">
                     <div
@@ -657,11 +641,10 @@ export function InstagramStoryModal({
                     </div>
                   )}
 
-                  {/* Highlight Quote */}
+                  {/* Highlight Quote (Limpa, legível e sem ícone de aspas) */}
                   {showQuote && customQuote.trim() && (
-                    <div className="p-2.5 rounded-xl bg-black/50 border border-white/10 text-left max-w-[280px] backdrop-blur-md">
-                      <QuoteIcon className="w-3 h-3 text-amber-400 mb-0.5 opacity-80" />
-                      <p className="text-[10px] italic text-zinc-200 line-clamp-2 leading-relaxed font-serif">
+                    <div className="p-3.5 rounded-2xl bg-black/60 border border-white/15 text-center max-w-[300px] backdrop-blur-md shadow-lg">
+                      <p className="text-xs sm:text-sm font-sans font-medium text-zinc-100 leading-relaxed italic">
                         &ldquo;{customQuote}&rdquo;
                       </p>
                     </div>
