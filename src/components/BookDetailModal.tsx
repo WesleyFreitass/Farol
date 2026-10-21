@@ -13,6 +13,7 @@ import {
   Loader2,
   Clock,
   Star,
+  Plus,
 } from "lucide-react";
 import { READING_EMOTIONS, EMOTIONS_BY_ID } from "@/lib/emotions";
 
@@ -55,6 +56,9 @@ export function BookDetailModal({
   onClose,
   onBookUpdated,
 }: BookDetailModalProps) {
+  // Update Reading Dialog state (opened by the button inside the book page)
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+
   // Mode: "page" | "percentage"
   const [mode, setMode] = useState<"page" | "percentage">("page");
   const [pageValue, setPageValue] = useState<string>("");
@@ -72,6 +76,7 @@ export function BookDetailModal({
   useEffect(() => {
     if (isOpen) {
       setReadDate(new Date().toISOString().split("T")[0]);
+      setIsUpdateDialogOpen(false);
     }
   }, [isOpen]);
 
@@ -93,6 +98,15 @@ export function BookDetailModal({
         ? prev.filter((id) => id !== emotionId)
         : [...prev, emotionId]
     );
+  }
+
+  function handleOpenUpdateDialog() {
+    setPageValue(book?.currentPage ? String(book.currentPage) : "");
+    setPercentageValue(book?.currentPercentage ? String(book.currentPercentage) : "");
+    setComment("");
+    setSelectedEmotions([]);
+    setError(null);
+    setIsUpdateDialogOpen(true);
   }
 
   async function handleAddSession(e: React.FormEvent) {
@@ -127,11 +141,7 @@ export function BookDetailModal({
         throw new Error(data.error || "Erro ao registrar leitura.");
       }
 
-      // Reset session form
-      setPageValue("");
-      setPercentageValue("");
-      setComment("");
-      setSelectedEmotions([]);
+      setIsUpdateDialogOpen(false);
       onBookUpdated();
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -204,7 +214,7 @@ export function BookDetailModal({
         {/* Book Header Card */}
         <div className="flex flex-col sm:flex-row gap-6 pb-6 border-b border-slate-800">
           {/* Cover */}
-          <div className="w-24 sm:w-32 h-36 sm:h-48 rounded-2xl bg-gradient-to-br from-slate-800 to-indigo-950 border border-slate-700/60 overflow-hidden shrink-0 shadow-lg flex items-center justify-center text-4xl">
+          <div className="w-28 sm:w-36 h-40 sm:h-52 rounded-2xl bg-gradient-to-br from-slate-800 to-indigo-950 border border-slate-700/60 overflow-hidden shrink-0 shadow-xl flex items-center justify-center text-5xl">
             {book.coverUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -217,15 +227,15 @@ export function BookDetailModal({
             )}
           </div>
 
-          {/* Book Info */}
+          {/* Book Info & Status */}
           <div className="flex-1 flex flex-col justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                  {book.status === "READING" && "Lendo"}
-                  {book.status === "WANT_TO_READ" && "Quero Ler"}
-                  {book.status === "READ" && "Lido"}
-                  {book.status === "DROPPED" && "Pausado"}
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  {book.status === "READING" && "📖 Lendo"}
+                  {book.status === "WANT_TO_READ" && "🔖 Quero Ler"}
+                  {book.status === "READ" && "✅ Lido"}
+                  {book.status === "DROPPED" && "⏸️ Pausado"}
                 </span>
 
                 {/* Rating Stars */}
@@ -253,107 +263,242 @@ export function BookDetailModal({
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
                 {book.title}
               </h2>
-              <p className="text-sm font-medium text-slate-400 mt-0.5">
-                por <span className="text-slate-200">{book.author}</span>
+              <p className="text-sm font-medium text-slate-400 mt-1">
+                por <span className="text-slate-200 font-semibold">{book.author}</span>
               </p>
 
               {book.notes && (
-                <p className="text-xs text-slate-400 mt-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 italic">
+                <p className="text-xs text-slate-300 mt-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 italic leading-relaxed">
                   &ldquo;{book.notes}&rdquo;
                 </p>
               )}
             </div>
 
-            {/* Progress Bar & Status Controls */}
-            <div className="mt-4 pt-3 border-t border-slate-800/60">
-              <div className="flex justify-between items-center text-xs font-medium text-slate-300 mb-1.5">
-                <span>
-                  Progresso:{" "}
-                  <strong className="text-amber-300 font-bold">
-                    {book.currentPage}
-                  </strong>{" "}
-                  / {book.totalPages} págs
-                </span>
-                <span className="font-bold text-amber-400">
-                  {book.currentPercentage}%
-                </span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.min(100, book.currentPercentage)}%` }}
-                />
+            {/* Status change tabs & delete */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-800/60">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-slate-500 mr-1 text-[11px]">Mudar status:</span>
+                {[
+                  { id: "READING", label: "Lendo" },
+                  { id: "WANT_TO_READ", label: "Quero Ler" },
+                  { id: "READ", label: "Lido" },
+                  { id: "DROPPED", label: "Pausar" },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => handleUpdateStatus(s.id)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                      book.status === s.id
+                        ? "bg-slate-800 text-amber-300 border border-slate-700 font-semibold"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Status change tabs & delete */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-slate-500 mr-1 text-[11px]">Mudar status:</span>
-                  {[
-                    { id: "READING", label: "Lendo" },
-                    { id: "WANT_TO_READ", label: "Quero Ler" },
-                    { id: "READ", label: "Lido" },
-                    { id: "DROPPED", label: "Pausar" },
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => handleUpdateStatus(s.id)}
-                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                        book.status === s.id
-                          ? "bg-slate-800 text-amber-300 border border-slate-700 font-semibold"
-                          : "text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={handleDeleteBook}
-                  disabled={deleting}
-                  className="inline-flex items-center gap-1 text-[11px] text-red-400/80 hover:text-red-400 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Excluir</span>
-                </button>
-              </div>
+              <button
+                onClick={handleDeleteBook}
+                disabled={deleting}
+                className="inline-flex items-center gap-1 text-[11px] text-red-400/80 hover:text-red-400 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Excluir livro</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Reading Registration & History Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
-          {/* Form to log progress (Left/Main col: 7) */}
-          <div className="lg:col-span-7 bg-slate-950/70 border border-slate-800/80 rounded-2xl p-5 shadow-inner">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+        {/* Progress Card with PROMINENT "Atualizar Leitura" BUTTON */}
+        <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-950/90 via-slate-900 to-slate-950 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-slate-300 mb-2">
+              <span className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-amber-400" />
+                <span>
+                  Progresso:{" "}
+                  <strong className="text-amber-300 font-bold text-base">
+                    {book.currentPage}
+                  </strong>{" "}
+                  de {book.totalPages} páginas
+                </span>
+              </span>
+              <span className="font-extrabold text-amber-400 text-base">
+                {book.currentPercentage}%
+              </span>
+            </div>
+
+            {/* Gauge bar */}
+            <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800/90 shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-500 rounded-full"
+                style={{ width: `${Math.min(100, book.currentPercentage)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* THE BUTTON TO UPDATE READING INSIDE THE BOOK PAGE */}
+          <button
+            type="button"
+            onClick={handleOpenUpdateDialog}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-xl shadow-amber-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Atualizar Leitura</span>
+          </button>
+        </div>
+
+        {/* Reading Diary & Sessions History */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-400" />
               <h3 className="text-base font-bold text-white">
-                Registrar Atualização de Leitura
+                Diário de Leituras & Emoções ({book.sessions?.length || 0})
               </h3>
             </div>
 
+            {book.sessions && book.sessions.length > 0 && (
+              <button
+                type="button"
+                onClick={handleOpenUpdateDialog}
+                className="text-xs text-amber-400 hover:text-amber-300 font-semibold underline cursor-pointer"
+              >
+                + Nova atualização
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {book.sessions && book.sessions.length > 0 ? (
+              book.sessions.map((session) => {
+                let emotionsList: string[] = [];
+                try {
+                  emotionsList = JSON.parse(session.emotions || "[]");
+                } catch {
+                  emotionsList = [];
+                }
+
+                const formattedDate = new Date(session.readDate).toLocaleDateString(
+                  "pt-BR",
+                  {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  }
+                );
+
+                return (
+                  <div
+                    key={session.id}
+                    className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between text-xs mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-amber-300 text-sm">
+                          Página {session.pageRead}
+                        </span>
+                        <span className="text-slate-400 font-normal">
+                          ({session.percentageRead}%)
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-xs">{formattedDate}</span>
+                    </div>
+
+                    {/* Emotions Badges */}
+                    {emotionsList.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        {emotionsList.map((emoId) => {
+                          const emo = EMOTIONS_BY_ID.get(emoId);
+                          if (!emo) return null;
+                          return (
+                            <span
+                              key={emo.id}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-medium border ${emo.color}`}
+                            >
+                              <span>{emo.emoji}</span>
+                              <span>{emo.label}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Comment */}
+                    {session.comment && (
+                      <p className="text-xs text-slate-300 bg-slate-900/70 p-3 rounded-xl border border-slate-800/80 leading-relaxed">
+                        {session.comment}
+                      </p>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-10 text-center rounded-2xl bg-slate-950/40 border border-slate-800/60 text-slate-500 text-xs">
+                <p className="text-3xl mb-2">🏮</p>
+                <p className="font-semibold text-slate-300 text-sm">
+                  Nenhuma sessão de leitura registrada ainda
+                </p>
+                <p className="mt-1 max-w-sm mx-auto text-slate-400">
+                  Clique no botão <strong>&ldquo;Atualizar Leitura&rdquo;</strong> acima para registrar sua página atual, sentimentos e anotações!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* POPUP / MODAL EXCLUSIVO PARA REGISTRAR A ATUALIZAÇÃO (ABERTO PELO BOTÃO) */}
+      {isUpdateDialogOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-[#0e0e13] border border-purple-500/50 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-300">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Atualizar Leitura
+                  </h3>
+                  <p className="text-xs text-zinc-400 truncate max-w-xs">
+                    {book.title}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsUpdateDialogOpen(false)}
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
+              <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleAddSession} className="space-y-4">
+            <form onSubmit={handleAddSession} className="space-y-4 mt-4">
               {/* Progress Mode Toggle: Pages vs Percentage */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300">
+                  <label className="text-xs font-semibold text-zinc-200">
                     Onde você parou?
                   </label>
-                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs">
+                  <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
                     <button
                       type="button"
                       onClick={() => setMode("page")}
                       className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
                         mode === "page"
-                          ? "bg-amber-500 text-slate-950 font-bold"
-                          : "text-slate-400 hover:text-slate-200"
+                          ? "bg-purple-600 text-white font-bold"
+                          : "text-zinc-400 hover:text-zinc-200"
                       }`}
                     >
                       Por Página
@@ -363,8 +508,8 @@ export function BookDetailModal({
                       onClick={() => setMode("percentage")}
                       className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
                         mode === "percentage"
-                          ? "bg-amber-500 text-slate-950 font-bold"
-                          : "text-slate-400 hover:text-slate-200"
+                          ? "bg-purple-600 text-white font-bold"
+                          : "text-zinc-400 hover:text-zinc-200"
                       }`}
                     >
                       Por %
@@ -374,24 +519,21 @@ export function BookDetailModal({
 
                 {mode === "page" ? (
                   <div className="relative">
-                    <BookOpen className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <BookOpen className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
                     <input
                       type="number"
                       min={0}
                       max={book.totalPages}
                       required
-                      placeholder={`Página atual (ex: ${Math.min(
-                        book.totalPages,
-                        book.currentPage + 20
-                      )}) de ${book.totalPages}`}
+                      placeholder={`Página atual (de ${book.totalPages})`}
                       value={pageValue}
                       onChange={(e) => setPageValue(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-purple-500 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors"
                     />
                   </div>
                 ) : (
                   <div className="relative">
-                    <span className="text-slate-500 font-bold absolute left-3.5 top-2.5 text-sm">
+                    <span className="text-zinc-500 font-bold absolute left-3.5 top-2.5 text-sm">
                       %
                     </span>
                     <input
@@ -403,7 +545,7 @@ export function BookDetailModal({
                       placeholder="Porcentagem atual (ex: 45.5)"
                       value={percentageValue}
                       onChange={(e) => setPercentageValue(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-purple-500 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors"
                     />
                   </div>
                 )}
@@ -411,46 +553,45 @@ export function BookDetailModal({
 
               {/* Read Date */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-zinc-200 mb-1.5">
                   Data da Leitura
                 </label>
                 <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                  <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
                   <input
                     type="date"
                     required
                     value={readDate}
                     onChange={(e) => setReadDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-100 outline-none transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-purple-500 rounded-xl text-sm text-zinc-100 outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              {/* 44 Emotions Picker */}
+              {/* 44 Emotions Matrix */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
                     <span>O que você sentiu lendo?</span>
-                    <span className="text-[10px] text-amber-400 font-semibold px-1.5 py-0.2 rounded bg-amber-500/10">
+                    <span className="text-[10px] text-purple-300 font-semibold px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-800/40">
                       {selectedEmotions.length} selecionada(s)
                     </span>
                   </label>
                 </div>
 
-                {/* Filter and search row */}
+                {/* Search & Category Pills */}
                 <div className="flex gap-2 mb-2">
                   <div className="relative flex-1">
-                    <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+                    <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
                     <input
                       type="text"
                       placeholder="Buscar emoção..."
                       value={emotionSearch}
                       onChange={(e) => setEmotionSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-purple-500"
                     />
                   </div>
 
-                  {/* Category Pills */}
                   <div className="flex items-center gap-1 overflow-x-auto text-[11px] pb-1">
                     {[
                       { id: "todas", label: "Todas (44)" },
@@ -465,8 +606,8 @@ export function BookDetailModal({
                         onClick={() => setCategoryFilter(cat.id)}
                         className={`px-2 py-1 rounded-md whitespace-nowrap transition-colors cursor-pointer ${
                           categoryFilter === cat.id
-                            ? "bg-slate-800 text-amber-300 font-semibold"
-                            : "text-slate-500 hover:text-slate-300"
+                            ? "bg-purple-950 text-purple-300 font-semibold border border-purple-800/50"
+                            : "text-zinc-500 hover:text-zinc-300"
                         }`}
                       >
                         {cat.label}
@@ -475,8 +616,8 @@ export function BookDetailModal({
                   </div>
                 </div>
 
-                {/* Emotion Chips Grid */}
-                <div className="max-h-40 overflow-y-auto p-2 bg-slate-900/90 border border-slate-800/80 rounded-xl flex flex-wrap gap-1.5">
+                {/* Chips Grid */}
+                <div className="max-h-40 overflow-y-auto p-2 bg-zinc-950 border border-zinc-800/90 rounded-xl flex flex-wrap gap-1.5">
                   {filteredEmotions.map((emotion) => {
                     const isSelected = selectedEmotions.includes(emotion.id);
                     return (
@@ -486,13 +627,15 @@ export function BookDetailModal({
                         onClick={() => toggleEmotion(emotion.id)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                           isSelected
-                            ? `${emotion.color} ring-1 ring-amber-400 font-semibold shadow-sm`
-                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                            ? `${emotion.color} ring-1 ring-purple-400 font-semibold shadow-sm`
+                            : "bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
                         }`}
                       >
                         <span>{emotion.emoji}</span>
                         <span>{emotion.label}</span>
-                        {isSelected && <Check className="w-3 h-3 text-amber-300 ml-0.5" />}
+                        {isSelected && (
+                          <Check className="w-3 h-3 text-purple-300 ml-0.5" />
+                        )}
                       </button>
                     );
                   })}
@@ -501,8 +644,8 @@ export function BookDetailModal({
 
               {/* Comment / Thoughts */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block text-xs font-semibold text-zinc-200 mb-1.5 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Comentário / Citação dessa sessão</span>
                 </label>
                 <textarea
@@ -510,116 +653,39 @@ export function BookDetailModal({
                   placeholder="Que reviravolta! Esse capítulo mudou tudo..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors resize-none"
+                  className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 focus:border-purple-500 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors resize-none"
                 />
               </div>
 
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={savingSession}
-                className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                {savingSession ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Salvando progresso...</span>
-                  </>
-                ) : (
-                  "Salvar Atualização de Leitura"
-                )}
-              </button>
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsUpdateDialogOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={savingSession}
+                  className="py-2.5 px-6 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-600/25 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {savingSession ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    "Salvar Atualização"
+                  )}
+                </button>
+              </div>
             </form>
           </div>
-
-          {/* Reading History Timeline (Right col: 5) */}
-          <div className="lg:col-span-5 flex flex-col">
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-4 h-4 text-amber-400" />
-              <h3 className="text-base font-bold text-white">
-                Diário & Histórico ({book.sessions?.length || 0})
-              </h3>
-            </div>
-
-            <div className="flex-1 max-h-[480px] overflow-y-auto space-y-3 pr-1">
-              {book.sessions && book.sessions.length > 0 ? (
-                book.sessions.map((session) => {
-                  let emotionsList: string[] = [];
-                  try {
-                    emotionsList = JSON.parse(session.emotions || "[]");
-                  } catch {
-                    emotionsList = [];
-                  }
-
-                  const formattedDate = new Date(session.readDate).toLocaleDateString(
-                    "pt-BR",
-                    {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    }
-                  );
-
-                  return (
-                    <div
-                      key={session.id}
-                      className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700/80 transition-all shadow-sm"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-semibold text-amber-300">
-                          Página {session.pageRead}{" "}
-                          <span className="text-slate-400 font-normal">
-                            ({session.percentageRead}%)
-                          </span>
-                        </span>
-                        <span className="text-slate-500 text-[11px]">
-                          {formattedDate}
-                        </span>
-                      </div>
-
-                      {/* Emotion badges */}
-                      {emotionsList.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {emotionsList.map((emoId) => {
-                            const emo = EMOTIONS_BY_ID.get(emoId);
-                            if (!emo) return null;
-                            return (
-                              <span
-                                key={emo.id}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${emo.color}`}
-                              >
-                                <span>{emo.emoji}</span>
-                                <span>{emo.label}</span>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Comment */}
-                      {session.comment && (
-                        <p className="text-xs text-slate-300 bg-slate-900/60 p-2 rounded-xl border border-slate-800/60 leading-relaxed">
-                          {session.comment}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-8 text-center rounded-2xl bg-slate-950/40 border border-slate-800/60 text-slate-500 text-xs">
-                  <p className="text-2xl mb-2">🕯️</p>
-                  <p className="font-medium text-slate-400">
-                    Nenhuma atualização registrada ainda.
-                  </p>
-                  <p className="mt-1">
-                    Preencha o formulário ao lado para acender seu diário de leitura!
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
