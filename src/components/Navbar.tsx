@@ -1,6 +1,14 @@
 "use client";
 
-import { LogOut, BookOpen, Plus, User as UserIcon, BarChart3, Library } from "lucide-react";
+import {
+  LogOut,
+  BookOpen,
+  Plus,
+  User as UserIcon,
+  BarChart3,
+  Library,
+  Target,
+} from "lucide-react";
 
 interface User {
   id: string;
@@ -14,8 +22,9 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onOpenAddBook: () => void;
   onLogout: () => void;
-  activeTab?: "shelf" | "stats";
-  onTabChange?: (tab: "shelf" | "stats") => void;
+  activeTab?: "shelf" | "stats" | "wishlist";
+  onTabChange?: (tab: "shelf" | "stats" | "wishlist") => void;
+  wishlistDroppedCount?: number;
   stats?: {
     total: number;
     reading: number;
@@ -30,6 +39,7 @@ export function Navbar({
   onLogout,
   activeTab = "shelf",
   onTabChange,
+  wishlistDroppedCount = 0,
   stats,
 }: NavbarProps) {
   return (
@@ -87,6 +97,24 @@ export function Navbar({
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Gráficos & Guia</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("wishlist")}
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === "wishlist"
+                  ? "bg-slate-800 text-amber-300 border border-slate-700/80 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Radar de Desejos</span>
+              {wishlistDroppedCount !== undefined && wishlistDroppedCount > 0 ? (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-0.5">
+                  🔥 {wishlistDroppedCount}
+                </span>
+              ) : null}
             </button>
           </div>
         )}

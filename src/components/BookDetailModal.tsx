@@ -12,6 +12,8 @@ import {
   Clock,
   Star,
   Plus,
+  Target,
+  Check,
 } from "lucide-react";
 import { EMOTIONS_BY_ID } from "@/lib/emotions";
 import { EmotionsPickerModal } from "./EmotionsPickerModal";
@@ -73,13 +75,43 @@ export function BookDetailModal({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [addingToRadar, setAddingToRadar] = useState(false);
+  const [radarStatus, setRadarStatus] = useState<string | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       setReadDate(new Date().toISOString().split("T")[0]);
       setIsUpdateDialogOpen(false);
       setIsEmotionsPickerOpen(false);
+      setRadarStatus(null);
     }
   }, [isOpen]);
+
+  async function handleAddToRadar() {
+    if (!book || addingToRadar) return;
+    setAddingToRadar(true);
+    try {
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: book.title,
+          author: book.author,
+          coverUrl: book.coverUrl,
+          userBookId: book.id,
+        }),
+      });
+      if (res.ok || res.status === 409) {
+        setRadarStatus("✓ No Radar de Preços!");
+      } else {
+        setRadarStatus("Erro ao adicionar");
+      }
+    } catch {
+      setRadarStatus("Erro");
+    } finally {
+      setAddingToRadar(false);
+    }
+  }
 
   if (!isOpen || !book) return null;
 
@@ -250,6 +282,29 @@ export function BookDetailModal({
                   &ldquo;{book.notes}&rdquo;
                 </p>
               )}
+
+              {/* Radar de Preços quick action */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={handleAddToRadar}
+                  disabled={addingToRadar || !!radarStatus}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    radarStatus
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      : "bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30"
+                  }`}
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  <span>
+                    {radarStatus
+                      ? radarStatus
+                      : addingToRadar
+                      ? "Buscando menor preço..."
+                      : "🎯 Monitorar Preço no Radar"}
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Status change tabs & delete */}

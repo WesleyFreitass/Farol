@@ -16,6 +16,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   books        UserBook[]
+  wishlistItems WishlistItem[]
 
   @@map("users")
 }
@@ -57,4 +58,42 @@ model ReadingSession {
 
   @@index([userBookId])
   @@map("reading_sessions")
+}
+
+model WishlistItem {
+  id             String         @id @default(uuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userBookId     String?
+  title          String
+  author         String
+  isbn           String?
+  coverUrl       String?
+  initialPrice   Float
+  currentPrice   Float
+  lowestPrice    Float
+  targetPrice    Float?
+  storeName      String?
+  productUrl     String?
+  lastCheckedAt  DateTime       @default(now())
+  priceDropped   Boolean        @default(false)
+  percentDrop    Float          @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  history        PriceHistory[]
+
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+model PriceHistory {
+  id             String       @id @default(uuid())
+  wishlistId     String
+  wishlistItem   WishlistItem @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  price          Float
+  storeName      String?
+  recordedAt     DateTime     @default(now())
+
+  @@index([wishlistId])
+  @@map("price_history")
 }
