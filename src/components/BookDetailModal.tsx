@@ -18,6 +18,7 @@ import {
 import { EMOTIONS_BY_ID } from "@/lib/emotions";
 import { EmotionsPickerModal } from "./EmotionsPickerModal";
 import { StarRating } from "./StarRating";
+import { InstagramStoryModal } from "./InstagramStoryModal";
 
 export interface ReadingSession {
   id: string;
@@ -62,6 +63,7 @@ export function BookDetailModal({
   // Update Reading Dialog state (opened by the button inside the book page)
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [isEmotionsPickerOpen, setIsEmotionsPickerOpen] = useState(false);
+  const [isInstagramOpen, setIsInstagramOpen] = useState(false);
 
   // Mode: "page" | "percentage"
   const [mode, setMode] = useState<"page" | "percentage">("page");
@@ -283,8 +285,8 @@ export function BookDetailModal({
                 </p>
               )}
 
-              {/* Radar de Preços quick action */}
-              <div className="mt-3">
+              {/* Quick Actions (Radar de Preços & Instagram Card) */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={handleAddToRadar}
@@ -301,8 +303,17 @@ export function BookDetailModal({
                       ? radarStatus
                       : addingToRadar
                       ? "Buscando menor preço..."
-                      : "🎯 Monitorar Preço no Radar"}
+                      : "🎯 Monitorar Preço"}
                   </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsInstagramOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-pink-500/15 via-purple-500/15 to-amber-500/15 hover:from-pink-500/25 hover:to-amber-500/25 text-pink-300 border border-pink-500/30 transition-all cursor-pointer shadow-sm active:scale-95"
+                >
+                  <span>📸</span>
+                  <span>Card Instagram</span>
                 </button>
               </div>
             </div>
@@ -711,6 +722,13 @@ export function BookDetailModal({
         onClose={() => setIsEmotionsPickerOpen(false)}
         selectedEmotions={selectedEmotions}
         onSave={(newEmotions) => setSelectedEmotions(newEmotions)}
+      />
+
+      {/* GERADOR DE CARD / TEMPLATE PARA INSTAGRAM */}
+      <InstagramStoryModal
+        book={book}
+        isOpen={isInstagramOpen}
+        onClose={() => setIsInstagramOpen(false)}
       />
     </div>
   );
