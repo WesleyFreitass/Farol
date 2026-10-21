@@ -587,6 +587,16 @@ export function WishlistView({
         onClose={() => setIsAddOpen(false)}
         onSuccess={loadWishlist}
         shelfBooks={books}
+        existingWishlistTitles={
+          new Set(
+            items.map((i) =>
+              i.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "")
+                .trim()
+            )
+          )
+        }
       />
     </div>
   );

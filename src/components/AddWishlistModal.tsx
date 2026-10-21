@@ -7,7 +7,6 @@ import {
   Plus,
   Loader2,
   Sparkles,
-  DollarSign,
   BookOpen,
   Check,
   TrendingDown,
@@ -21,6 +20,7 @@ interface AddWishlistModalProps {
   onClose: () => void;
   onSuccess: () => void;
   shelfBooks?: Book[];
+  existingWishlistTitles?: Set<string>;
   defaultBook?: {
     title: string;
     author: string;
@@ -34,47 +34,47 @@ export function AddWishlistModal({
   onClose,
   onSuccess,
   shelfBooks = [],
+  existingWishlistTitles = new Set(),
   defaultBook,
 }: AddWishlistModalProps) {
-  // Search query & results from API
+  // Search state
   const [searchQuery, setSearchQuery] = useState(defaultBook?.title || "");
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Selected book to add
-  const [selectedBook, setSelectedBook] = useState<BookSearchResult | null>(
-    defaultBook
-      ? {
-          id: defaultBook.userBookId || "manual_default",
-          title: defaultBook.title,
-          author: defaultBook.author,
-          totalPages: 0,
-          coverUrl: defaultBook.coverUrl || null,
-          publishedYear: null,
-          language: "Português 🇧🇷",
-          format: "Físico",
-          description: null,
-        }
-      : null
-  );
-
-  // Optional Target Price
-  const [targetPrice, setTargetPrice] = useState("");
-  // Optional manual price override
-  const [manualPrice, setManualPrice] = useState("");
-
-  const [adding, setAdding] = useState(false);
+  // Added books tracking in this modal session
+  const [addedBookIds, setAddedBookIds] = useState<Set<string>>(new Set());
+  const [addingId, setAddingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showManualForm, setShowManualForm] = useState(false);
 
-  // Manual fallback inputs
+  // Optional target price
+  const [targetPrice, setTargetPrice] = useState("");
+
+  // Manual fallback state
+  const [showManualForm, setShowManualForm] = useState(false);
   const [manualTitle, setManualTitle] = useState("");
   const [manualAuthor, setManualAuthor] = useState("");
   const [manualCover, setManualCover] = useState("");
 
-  // Filter shelf books in "Quero Ler"
+  // Reset state on open/close
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery(defaultBook?.title || "");
+      setSearchResults([]);
+      setHasSearched(false);
+      setError(null);
+      setAddingId(null);
+      setShowManualForm(false);
+      setTargetPrice("");
+      setManualTitle("");
+      setManualAuthor("");
+      setManualCover("");
+    }
+  }, [isOpen, defaultBook]);
+
+  // Books from shelf that can be imported
   const wantToReadBooks = shelfBooks.filter(
     (b) => b.status === "WANT_TO_READ" || b.status === "READING"
   );
@@ -123,50 +123,125 @@ export function AddWishlistModal({
 
   if (!isOpen) return null;
 
-  function handleSelectBook(book: BookSearchResult) {
-    setSelectedBook(book);
+  // Check if book is already in wishlist
+  function isAlreadyInWishlist(book: BookSearchResult): boolean {
+    if (addedBookIds.has(book.id)) return true;
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .trim();
+    const target = norm(book.title);
+
+    if (existingWishlistTitles.has(target)) return true;
+
+    for (const t of existingWishlistTitles) {
+      if (
+        (target.length > 5 && t.includes(target)) ||
+        (t.length > 5 && target.includes(t))
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // 1-Click Add Book directly from search result
+  async function handleAddBookDirectly(book: BookSearchResult) {
+    if (addingId || isAlreadyInWishlist(book)) return;
+
+    setAddingId(book.id);
     setError(null);
-  }
 
-  function handleSelectShelfBook(bookId: string) {
-    const found = shelfBooks.find((b) => b.id === bookId);
-    if (found) {
-      setSelectedBook({
-        id: found.id,
-        title: found.title,
-        author: found.author,
-        totalPages: found.totalPages,
-        coverUrl: found.coverUrl || null,
-        publishedYear: null,
-        language: "Português 🇧🇷",
-        format: "Físico",
-        description: found.notes || null,
+    try {
+      const parsedTarget = targetPrice ? parseFloat(targetPrice) : undefined;
+      const matchingShelfBook = shelfBooks.find(
+        (b) =>
+          b.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+          book.title.toLowerCase().replace(/[^a-z0-9]/g, "")
+      );
+
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: book.title,
+          author: book.author,
+          coverUrl: book.coverUrl || undefined,
+          isbn: book.isbn || undefined,
+          targetPrice: parsedTarget,
+          userBookId: matchingShelfBook?.id || defaultBook?.userBookId || undefined,
+        }),
       });
-      setError(null);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Erro ao adicionar livro.");
+        return;
+      }
+
+      setAddedBookIds((prev) => new Set([...prev, book.id]));
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao se conectar ao servidor.");
+    } finally {
+      setAddingId(null);
     }
   }
 
-  async function handleAddSelectedBook(e?: React.FormEvent) {
-    if (e) e.preventDefault();
-    if (!selectedBook && !showManualForm) {
-      setError("Pesquise e selecione um livro da lista.");
-      return;
+  // Add from Shelf dropdown
+  async function handleAddShelfBook(bookId: string) {
+    if (!bookId || addingId) return;
+    const found = shelfBooks.find((b) => b.id === bookId);
+    if (!found) return;
+
+    setAddingId(found.id);
+    setError(null);
+
+    try {
+      const parsedTarget = targetPrice ? parseFloat(targetPrice) : undefined;
+
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: found.title,
+          author: found.author,
+          coverUrl: found.coverUrl || undefined,
+          targetPrice: parsedTarget,
+          userBookId: found.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Erro ao adicionar livro.");
+        return;
+      }
+
+      setAddedBookIds((prev) => new Set([...prev, found.id]));
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao adicionar livro.");
+    } finally {
+      setAddingId(null);
     }
+  }
 
-    const titleToAdd = showManualForm ? manualTitle.trim() : selectedBook?.title;
-    const authorToAdd = showManualForm
-      ? manualAuthor.trim()
-      : selectedBook?.author || "Autor desconhecido";
-    const coverToAdd = showManualForm
-      ? manualCover.trim() || undefined
-      : selectedBook?.coverUrl || undefined;
-
-    if (!titleToAdd) {
+  // Add manual
+  async function handleAddManual(e: React.FormEvent) {
+    e.preventDefault();
+    if (!manualTitle.trim()) {
       setError("Informe o título do livro.");
       return;
     }
 
-    setAdding(true);
+    setAddingId("manual");
     setError(null);
 
     try {
@@ -174,16 +249,10 @@ export function AddWishlistModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: titleToAdd,
-          author: authorToAdd,
-          coverUrl: coverToAdd,
-          isbn: selectedBook?.isbn || undefined,
+          title: manualTitle.trim(),
+          author: manualAuthor.trim() || undefined,
+          coverUrl: manualCover.trim() || undefined,
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
-          initialPrice: manualPrice ? parseFloat(manualPrice) : undefined,
-          userBookId:
-            selectedBook && shelfBooks.some((b) => b.id === selectedBook.id)
-              ? selectedBook.id
-              : defaultBook?.userBookId || undefined,
         }),
       });
 
@@ -198,9 +267,9 @@ export function AddWishlistModal({
       onClose();
     } catch (err) {
       console.error(err);
-      setError("Erro ao se conectar ao servidor.");
+      setError("Erro ao conectar ao servidor.");
     } finally {
-      setAdding(false);
+      setAddingId(null);
     }
   }
 
@@ -216,7 +285,7 @@ export function AddWishlistModal({
                 Novo Livro no Radar de Preços
               </h2>
               <p className="text-xs text-zinc-400">
-                O Farol busca capa, dados da API e o menor preço de mercado automaticamente!
+                Pesquise e adicione com 1 clique. O Farol busca o menor preço e avisa se ele cair!
               </p>
             </div>
           </div>
@@ -235,62 +304,43 @@ export function AddWishlistModal({
           </div>
         )}
 
-        {/* Selected Book Banner Preview (if a book was chosen) */}
-        {selectedBook && !showManualForm && (
-          <div className="mt-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-150">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-15 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
-                {selectedBook.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selectedBook.coverUrl}
-                    alt={selectedBook.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-base">📖</span>
-                )}
-              </div>
-
-              <div className="min-w-0">
-                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
-                  Livro Selecionado
-                </span>
-                <h4 className="text-sm font-bold text-white truncate">
-                  {selectedBook.title}
-                </h4>
-                <p className="text-xs text-zinc-300 truncate">
-                  por {selectedBook.author}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setSelectedBook(null)}
-              className="px-2.5 py-1 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800/80 rounded-lg transition-colors cursor-pointer shrink-0"
-            >
-              Trocar
-            </button>
+        {/* Target Price Pre-Configuration (Optional) */}
+        <div className="mt-3 flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 text-xs">
+          <span className="text-zinc-400 flex items-center gap-1.5 font-medium shrink-0">
+            <span>🎯</span>
+            <span>Preço Alvo Opcional:</span>
+          </span>
+          <div className="flex items-center gap-1.5 w-44">
+            <span className="text-zinc-500">R$</span>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Ex: 35.00"
+              value={targetPrice}
+              onChange={(e) => setTargetPrice(e.target.value)}
+              className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white placeholder-zinc-600 outline-none focus:border-amber-500"
+            />
           </div>
-        )}
+        </div>
 
-        {/* Search & Selection Section */}
-        {!selectedBook && !showManualForm && (
-          <div className="mt-4 space-y-3 flex-1 flex flex-col min-h-0">
-            {/* Quick shelf import dropdown if user has books */}
+        {!showManualForm ? (
+          <div className="mt-3 space-y-3 flex-1 flex flex-col min-h-0">
+            {/* Shelf import option */}
             {wantToReadBooks.length > 0 && (
               <div>
                 <label className="block text-xs font-semibold text-zinc-400 mb-1 flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Ou escolha da sua estante (&ldquo;Quero Ler&rdquo;)</span>
+                  <span>Importar da sua estante (&ldquo;Quero Ler&rdquo;)</span>
                 </label>
                 <select
-                  onChange={(e) => handleSelectShelfBook(e.target.value)}
+                  onChange={(e) => {
+                    handleAddShelfBook(e.target.value);
+                    e.target.value = "";
+                  }}
                   defaultValue=""
                   className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-amber-500 transition-colors"
                 >
-                  <option value="">-- Selecionar da estante --</option>
+                  <option value="">-- Escolha um livro para adicionar ao radar --</option>
                   {wantToReadBooks.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.title} - {b.author}
@@ -303,14 +353,14 @@ export function AddWishlistModal({
             {/* Live Search Input */}
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                Pesquisar livro na API (Google Books / Catálogo Nacional)
+                Pesquisar livro pelo nome ou autor:
               </label>
               <div className="relative">
                 <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   autoFocus
-                  placeholder="Digite o título (ex: Harry Potter, Duna, Game of Thrones)..."
+                  placeholder="Ex: O despertar da lua caída, Harry Potter, Duna..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 focus:border-amber-500 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
@@ -330,65 +380,85 @@ export function AddWishlistModal({
               </div>
             </div>
 
-            {/* Results list */}
-            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[160px] max-h-[320px]">
+            {/* Results list with 1-click addition */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[160px] max-h-[340px]">
               {isSearching ? (
                 <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
                   <Loader2 className="w-6 h-6 text-amber-500 animate-spin mb-2" />
-                  <p className="text-xs">Buscando edições e capas na API...</p>
+                  <p className="text-xs">Buscando no acervo nacional...</p>
                 </div>
               ) : searchResults.length > 0 ? (
-                searchResults.map((book) => (
-                  <div
-                    key={book.id}
-                    onClick={() => handleSelectBook(book)}
-                    className="p-3 rounded-2xl bg-[#14141d] hover:bg-[#191924] border border-zinc-800/80 hover:border-amber-500/50 transition-all flex items-center justify-between gap-3 cursor-pointer group shadow-sm"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Cover from API */}
-                      <div className="w-11 h-15 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
-                        {book.coverUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={book.coverUrl}
-                            alt={book.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <span className="text-base">📖</span>
-                        )}
-                      </div>
+                searchResults.map((book) => {
+                  const alreadyAdded = isAlreadyInWishlist(book);
+                  const isAdding = addingId === book.id;
 
-                      <div className="min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1">
-                          {book.title}
-                        </h4>
-                        <p className="text-xs text-zinc-400 truncate mt-0.5">
-                          por {book.author}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[10px] px-2 py-0.2 rounded-md bg-zinc-800/80 text-zinc-300">
-                            {book.language}
-                          </span>
-                          <span className="text-[10px] px-2 py-0.2 rounded-md bg-zinc-800/80 text-zinc-400">
-                            {book.format}
-                          </span>
+                  return (
+                    <div
+                      key={book.id}
+                      className="p-3 rounded-2xl bg-[#14141d] hover:bg-[#191924] border border-zinc-800/80 transition-all flex items-center justify-between gap-3 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Cover from API */}
+                        <div className="w-12 h-16 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
+                          {book.coverUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={book.coverUrl}
+                              alt={book.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-base">📖</span>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-1">
+                            {book.title}
+                          </h4>
+                          <p className="text-xs text-zinc-400 truncate mt-0.5">
+                            por <span className="text-zinc-200">{book.author}</span>
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[10px] px-2 py-0.2 rounded-md bg-zinc-800/80 text-zinc-300">
+                              {book.language}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.2 rounded-md bg-zinc-800/80 text-zinc-400">
+                              {book.format}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectBook(book);
-                      }}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-zinc-950 border border-amber-500/20 transition-all shrink-0 cursor-pointer"
-                    >
-                      Selecionar
-                    </button>
-                  </div>
-                ))
+                      {/* 1-Click Action Button */}
+                      {alreadyAdded ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 select-none">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>No Radar</span>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddBookDirectly(book)}
+                          disabled={isAdding}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-md shadow-amber-500/20 transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          {isAdding ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Buscando preço...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>+ Monitorar</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
               ) : hasSearched && searchQuery.trim().length >= 2 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center text-zinc-500">
                   <p className="text-xs">Nenhum livro encontrado com esse termo.</p>
@@ -407,17 +477,15 @@ export function AddWishlistModal({
                 <div className="flex flex-col items-center justify-center py-10 text-center text-zinc-500">
                   <Sparkles className="w-6 h-6 text-amber-400/40 mb-2" />
                   <p className="text-xs">
-                    Comece digitando o nome do livro para puxar a capa e dados automaticamente!
+                    Digite o título para buscar capa e menor preço automaticamente!
                   </p>
                 </div>
               )}
             </div>
           </div>
-        )}
-
-        {/* Manual Form Toggle / View */}
-        {showManualForm && (
-          <div className="mt-4 space-y-3">
+        ) : (
+          /* Manual Form */
+          <form onSubmit={handleAddManual} className="mt-4 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1">
                 Título do Livro *
@@ -456,61 +524,34 @@ export function AddWishlistModal({
               />
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowManualForm(false)}
-              className="text-xs text-zinc-400 hover:text-white underline cursor-pointer"
-            >
-              ← Voltar para busca automática por API
-            </button>
-          </div>
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={() => setShowManualForm(false)}
+                className="text-xs text-zinc-400 hover:text-white underline cursor-pointer"
+              >
+                ← Voltar para busca por API
+              </button>
+
+              <button
+                type="submit"
+                disabled={addingId === "manual"}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-zinc-950 transition-all cursor-pointer"
+              >
+                {addingId === "manual" ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
+                <span>Cadastrar</span>
+              </button>
+            </div>
+          </form>
         )}
 
-        {/* Price Target and Submission section (when book is selected or manual) */}
-        {(selectedBook || showManualForm) && (
-          <div className="mt-4 pt-3 border-t border-zinc-800 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                  Preço Alvo Desejado (R$) <span className="text-zinc-500 font-normal">(opcional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Ex: 35.00"
-                  value={targetPrice}
-                  onChange={(e) => setTargetPrice(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white placeholder-zinc-500 outline-none focus:border-amber-500 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                  Preço Atual de Referência <span className="text-zinc-500 font-normal">(opcional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Auto (busca nas livrarias)"
-                  value={manualPrice}
-                  onChange={(e) => setManualPrice(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white placeholder-zinc-500 outline-none focus:border-amber-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300/90 flex items-start gap-2">
-              <Sparkles className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
-              <span>
-                Ao confirmar, o Farol fará a consulta do menor preço em tempo real no mercado e salvará o valor para monitorar quedas futuras!
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
-          {!showManualForm && !selectedBook ? (
+          {!showManualForm ? (
             <button
               type="button"
               onClick={() => setShowManualForm(true)}
@@ -522,35 +563,13 @@ export function AddWishlistModal({
             <div />
           )}
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={adding}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleAddSelectedBook()}
-              disabled={adding || (!selectedBook && !showManualForm)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {adding ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Buscando Menor Preço...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Adicionar ao Radar</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          >
+            Fechar
+          </button>
         </div>
       </div>
     </div>
