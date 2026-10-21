@@ -15,6 +15,7 @@ model User {
   avatarUrl         String?
   bio               String?
   profileBackground String?        // theme id or custom url
+  themeColor        String?        @default("steam_purple") // center container color
   avatarFrame       String?        // gold, cosmic, emerald, flame, neon
   featuredBookIds   String?        // JSON array of book IDs: '["id1", "id2"]'
   createdAt         DateTime       @default(now())

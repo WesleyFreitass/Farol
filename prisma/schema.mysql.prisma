@@ -15,6 +15,7 @@ model User {
   avatarUrl         String?
   bio               String?        @db.Text
   profileBackground String?        @db.Text
+  themeColor        String?        @default("steam_purple")
   avatarFrame       String?
   featuredBookIds   String?        @db.Text
   createdAt         DateTime       @default(now())

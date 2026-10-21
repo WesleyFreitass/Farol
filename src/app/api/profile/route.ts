@@ -18,6 +18,7 @@ export async function GET() {
         avatarUrl: true,
         bio: true,
         profileBackground: true,
+        themeColor: true,
         avatarFrame: true,
         featuredBookIds: true,
         createdAt: true,
@@ -150,6 +151,9 @@ export async function PATCH(req: Request) {
     }
     if (body.profileBackground !== undefined) {
       updateData.profileBackground = body.profileBackground?.trim() || null;
+    }
+    if (body.themeColor !== undefined) {
+      updateData.themeColor = body.themeColor?.trim() || "steam_purple";
     }
     if (body.avatarFrame !== undefined) {
       updateData.avatarFrame = body.avatarFrame?.trim() || null;

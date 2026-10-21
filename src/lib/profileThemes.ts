@@ -6,6 +6,15 @@ export interface ProfileTheme {
   accentColor: string;
 }
 
+export interface CenterThemeColor {
+  id: string;
+  name: string;
+  bgGradient: string;
+  borderClass: string;
+  glowClass: string;
+  accentColor: string;
+}
+
 export interface AvatarFrame {
   id: string;
   name: string;
@@ -14,6 +23,65 @@ export interface AvatarFrame {
   glowClass: string;
   badge: string;
 }
+
+export const CENTER_THEMES: CenterThemeColor[] = [
+  {
+    id: "steam_purple",
+    name: "Roxo Steam Clássico 🔮",
+    bgGradient: "from-[#351540]/90 via-[#220d29]/90 to-[#120716]/95",
+    borderClass: "border-purple-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(168,85,247,0.15)]",
+    accentColor: "#a855f7",
+  },
+  {
+    id: "steam_midnight",
+    name: "Azul Meia-Noite 🌌",
+    bgGradient: "from-[#11223e]/90 via-[#0c1628]/90 to-[#060b14]/95",
+    borderClass: "border-blue-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(59,130,246,0.15)]",
+    accentColor: "#3b82f6",
+  },
+  {
+    id: "steam_emerald",
+    name: "Verde Esmeralda 🌲",
+    bgGradient: "from-[#0e2c1e]/90 via-[#0a1d14]/90 to-[#050f0a]/95",
+    borderClass: "border-emerald-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(16,185,129,0.15)]",
+    accentColor: "#10b981",
+  },
+  {
+    id: "steam_crimson",
+    name: "Carmesim Nobre 🔥",
+    bgGradient: "from-[#3b121c]/90 via-[#260b12]/90 to-[#140509]/95",
+    borderClass: "border-rose-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(244,63,94,0.15)]",
+    accentColor: "#f43f5e",
+  },
+  {
+    id: "steam_gold",
+    name: "Âmbar Dourado Farol 🏮",
+    bgGradient: "from-[#38240f]/90 via-[#24170a]/90 to-[#130c05]/95",
+    borderClass: "border-amber-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(245,158,11,0.15)]",
+    accentColor: "#f59e0b",
+  },
+  {
+    id: "steam_cyber",
+    name: "Cyberpunk Synthwave ⚡",
+    bgGradient: "from-[#2f113a]/90 via-[#10192e]/90 to-[#080b13]/95",
+    borderClass: "border-cyan-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(6,182,212,0.15)]",
+    accentColor: "#06b6d4",
+  },
+  {
+    id: "steam_pure_dark",
+    name: "Preto Obsidiana Clássico 🖤",
+    bgGradient: "from-[#14141e]/92 via-[#0e0e14]/94 to-[#08080c]/98",
+    borderClass: "border-zinc-800",
+    glowClass: "shadow-2xl",
+    accentColor: "#71717a",
+  },
+];
 
 export const PROFILE_THEMES: ProfileTheme[] = [
   {
