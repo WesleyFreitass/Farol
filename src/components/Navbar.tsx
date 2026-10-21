@@ -22,8 +22,8 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onOpenAddBook: () => void;
   onLogout: () => void;
-  activeTab?: "shelf" | "stats" | "wishlist";
-  onTabChange?: (tab: "shelf" | "stats" | "wishlist") => void;
+  activeTab?: "shelf" | "stats" | "wishlist" | "profile";
+  onTabChange?: (tab: "shelf" | "stats" | "wishlist" | "profile") => void;
   wishlistDroppedCount?: number;
   stats?: {
     total: number;
@@ -116,6 +116,19 @@ export function Navbar({
                 </span>
               ) : null}
             </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("profile")}
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === "profile"
+                  ? "bg-slate-800 text-amber-300 border border-slate-700/80 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>Perfil</span>
+            </button>
           </div>
         )}
 
@@ -133,7 +146,11 @@ export function Navbar({
               </button>
 
               <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-1.5">
+                <div
+                  onClick={() => onTabChange && onTabChange("profile")}
+                  title="Ver meu perfil"
+                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-1.5 cursor-pointer transition-colors"
+                >
                   <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs font-bold border border-amber-500/30">
                     {user.name.charAt(0).toUpperCase()}
                   </div>

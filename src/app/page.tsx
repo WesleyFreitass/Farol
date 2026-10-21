@@ -8,6 +8,7 @@ import { BookCard } from "@/components/BookCard";
 import { BookDetailModal, Book } from "@/components/BookDetailModal";
 import { ReadingStatsView } from "@/components/ReadingStatsView";
 import { WishlistView } from "@/components/WishlistView";
+import { ProfileView } from "@/components/ProfileView";
 import { Plus, Search, BookOpen, Sparkles, Heart, Compass } from "lucide-react";
 
 interface User {
@@ -29,7 +30,9 @@ export default function Home() {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   // Filters & Search & Tab
-  const [activeTab, setActiveTab] = useState<"shelf" | "stats" | "wishlist">("shelf");
+  const [activeTab, setActiveTab] = useState<
+    "shelf" | "stats" | "wishlist" | "profile"
+  >("shelf");
   const [wishlistDroppedCount, setWishlistDroppedCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -218,6 +221,11 @@ export default function Home() {
             onWishlistCountChange={(_total, dropped) =>
               setWishlistDroppedCount(dropped)
             }
+          />
+        ) : activeTab === "profile" ? (
+          <ProfileView
+            shelfBooks={books}
+            onSelectBook={(book) => setSelectedBook(book)}
           />
         ) : (
           /* Authenticated Dashboard - Estante */
