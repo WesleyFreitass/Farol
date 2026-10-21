@@ -6,6 +6,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { AddBookModal } from "@/components/AddBookModal";
 import { BookCard } from "@/components/BookCard";
 import { BookDetailModal, Book } from "@/components/BookDetailModal";
+import { ReadingStatsView } from "@/components/ReadingStatsView";
 import { Plus, Search, BookOpen, Sparkles, Heart, Compass } from "lucide-react";
 
 interface User {
@@ -26,7 +27,8 @@ export default function Home() {
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  // Filters & Search
+  // Filters & Search & Tab
+  const [activeTab, setActiveTab] = useState<"shelf" | "stats">("shelf");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -131,6 +133,8 @@ export default function Home() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenAddBook={() => setIsAddBookOpen(true)}
         onLogout={handleLogout}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         stats={stats}
       />
 
@@ -203,8 +207,10 @@ export default function Home() {
               </div>
             </div>
           </div>
+        ) : activeTab === "stats" ? (
+          <ReadingStatsView books={books} />
         ) : (
-          /* Authenticated Dashboard */
+          /* Authenticated Dashboard - Estante */
           <div>
             {/* Header row */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

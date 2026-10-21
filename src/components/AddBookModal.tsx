@@ -129,6 +129,7 @@ export function AddBookModal({
           coverUrl: book.coverUrl || undefined,
           status: "READING",
           notes: book.description || undefined,
+          genre: book.genre || "Ficção Geral",
         }),
       });
 

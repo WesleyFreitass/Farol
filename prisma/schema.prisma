@@ -33,6 +33,7 @@ model UserBook {
   status            String           @default("READING") // READING, WANT_TO_READ, READ, DROPPED
   notes             String?
   rating            Float?
+  genre             String?
   startDate         DateTime?
   finishDate        DateTime?
   createdAt         DateTime         @default(now())

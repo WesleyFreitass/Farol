@@ -73,6 +73,7 @@ export async function PATCH(
     if (body.author !== undefined) updateData.author = body.author.trim();
     if (body.coverUrl !== undefined) updateData.coverUrl = body.coverUrl?.trim() || null;
     if (body.status !== undefined) updateData.status = body.status;
+    if (body.genre !== undefined) updateData.genre = body.genre?.trim() || null;
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.rating !== undefined) {
       updateData.rating =

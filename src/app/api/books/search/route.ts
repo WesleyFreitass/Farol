@@ -12,6 +12,7 @@ export interface BookSearchResult {
   description: string | null;
   series?: string | null;
   isbn?: string | null;
+  genre?: string | null;
 }
 
 interface OpenLibraryDoc {
@@ -40,6 +41,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
     format: "Físico" | "eBook";
     series?: string;
     description?: string;
+    genre?: string;
   }[]
 > = {
   harry: [
@@ -52,6 +54,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       format: "Físico",
       series: "Harry Potter, #1",
       description: "Edição comemorativa especial em box com a saga completa de Harry Potter pela Editora Rocco.",
+      genre: "Fantasia",
     },
     {
       title: "Harry Potter e a Câmara Secreta (Harry Potter, #2)",
@@ -62,6 +65,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       format: "Físico",
       series: "Harry Potter, #2",
       description: "Carros voadores, aranhas que falam e um aviso mortal escrito com sangue nas paredes de Hogwarts.",
+      genre: "Fantasia",
     },
     {
       title: "Harry Potter and the Sorcerer's Stone (Harry Potter, #1)",
@@ -72,6 +76,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       format: "Físico",
       series: "Harry Potter, #1",
       description: "The classic first book in the global bestselling Harry Potter series.",
+      genre: "Fantasia",
     },
     {
       title: "Harry Potter e a Pedra Filosofal (Harry Potter, #1)",
@@ -82,6 +87,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       format: "Físico",
       series: "Harry Potter, #1",
       description: "Harry Potter descobre no seu 11º aniversário que é um bruxo e é convidado a ingressar em Hogwarts.",
+      genre: "Fantasia",
     },
     {
       title: "Harry Potter e o Prisioneiro de Azkaban (Harry Potter, #3)",
@@ -92,6 +98,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       format: "Físico",
       series: "Harry Potter, #3",
       description: "Sirius Black fugiu de Azkaban e os dementadores estão rondando Hogwarts.",
+      genre: "Fantasia",
     },
   ],
   potter: [
@@ -103,6 +110,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "Harry Potter, #4",
+      genre: "Fantasia",
     },
     {
       title: "Harry Potter e a Ordem da Fênix (Harry Potter, #5)",
@@ -112,6 +120,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "Harry Potter, #5",
+      genre: "Fantasia",
     },
   ],
   senhor: [
@@ -123,6 +132,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "O Senhor dos Anéis, #1",
+      genre: "Fantasia",
     },
     {
       title: "O Senhor dos Anéis: As Duas Torres (#2)",
@@ -132,6 +142,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "O Senhor dos Anéis, #2",
+      genre: "Fantasia",
     },
   ],
   percy: [
@@ -143,6 +154,7 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "Percy Jackson, #1",
+      genre: "Fantasia & Aventura",
     },
     {
       title: "O Mar de Monstros (Percy Jackson, #2)",
@@ -152,9 +164,127 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       language: "Português 🇧🇷",
       format: "Físico",
       series: "Percy Jackson, #2",
+      genre: "Fantasia & Aventura",
     },
   ],
 };
+
+function inferGenre(title: string, author?: string): string {
+  const t = (title + " " + (author || "")).toLowerCase();
+  if (
+    t.includes("harry potter") ||
+    t.includes("percy jackson") ||
+    t.includes("senhor dos anéis") ||
+    t.includes("hobbit") ||
+    t.includes("nárnia") ||
+    t.includes("mago") ||
+    t.includes("bruxo") ||
+    t.includes("feitiço") ||
+    t.includes("targaryen") ||
+    t.includes("game of thrones") ||
+    t.includes("trono") ||
+    t.includes("dragão") ||
+    t.includes("fantasia")
+  ) {
+    return "Fantasia";
+  }
+  if (
+    t.includes("duna") ||
+    t.includes("neuromancer") ||
+    t.includes("fundação") ||
+    t.includes("asimov") ||
+    t.includes("sci-fi") ||
+    t.includes("espaço") ||
+    t.includes("galáxia") ||
+    t.includes("interestelar") ||
+    t.includes("1984") ||
+    t.includes("admirável mundo novo") ||
+    t.includes("distopia")
+  ) {
+    return "Ficção Científica";
+  }
+  if (
+    t.includes("agatha christie") ||
+    t.includes("sherlock") ||
+    t.includes("holmes") ||
+    t.includes("assassinato") ||
+    t.includes("morte") ||
+    t.includes("crime") ||
+    t.includes("garota no trem") ||
+    t.includes("garota exemplar") ||
+    t.includes("verity") ||
+    t.includes("suspense") ||
+    t.includes("mistério")
+  ) {
+    return "Suspense & Mistério";
+  }
+  if (
+    t.includes("stephen king") ||
+    t.includes("dracula") ||
+    t.includes("frankenstein") ||
+    t.includes("terror") ||
+    t.includes("horror") ||
+    t.includes("medo") ||
+    t.includes("fantasma") ||
+    t.includes("it a coisa")
+  ) {
+    return "Terror & Horror";
+  }
+  if (
+    t.includes("amor") ||
+    t.includes("romance") ||
+    t.includes("orgulho e preconceito") ||
+    t.includes("é assim que acaba") ||
+    t.includes("é assim que começa") ||
+    t.includes("colleen hoover") ||
+    t.includes("paixão") ||
+    t.includes("coração") ||
+    t.includes("querido john") ||
+    t.includes("namorado")
+  ) {
+    return "Romance";
+  }
+  if (
+    t.includes("hábito") ||
+    t.includes("poder") ||
+    t.includes("financeiro") ||
+    t.includes("mente") ||
+    t.includes("produtividade") ||
+    t.includes("pai rico") ||
+    t.includes("segredos") ||
+    t.includes("inteligência") ||
+    t.includes("desenvolvimento") ||
+    t.includes("autoajuda") ||
+    t.includes("ansiedade") ||
+    t.includes("coragem")
+  ) {
+    return "Desenvolvimento Pessoal";
+  }
+  if (
+    t.includes("biografia") ||
+    t.includes("história") ||
+    t.includes("sapiens") ||
+    t.includes("guerra") ||
+    t.includes("memórias") ||
+    t.includes("diário de anne frank") ||
+    t.includes("vidas")
+  ) {
+    return "História & Biografia";
+  }
+  if (
+    t.includes("filosofia") ||
+    t.includes("ética") ||
+    t.includes("república") ||
+    t.includes("nietzsche") ||
+    t.includes("platão") ||
+    t.includes("sociedade") ||
+    t.includes("política") ||
+    t.includes("capital")
+  ) {
+    return "Filosofia & Sociedade";
+  }
+  return "Ficção Geral";
+}
 
 // Dicionário de títulos internacionais para português
 const FAMOUS_TRANSLATIONS: Record<string, string> = {
@@ -219,6 +349,10 @@ export async function GET(req: Request) {
             format: "Físico",
             description: brData.synopsis || null,
             isbn: cleanedDigits,
+            genre: inferGenre(
+              brData.title,
+              brData.authors ? brData.authors.join(", ") : undefined
+            ),
           });
         }
       } catch (err) {
@@ -241,6 +375,7 @@ export async function GET(req: Request) {
             format: b.format,
             series: b.series,
             description: b.description || null,
+            genre: b.genre || inferGenre(b.title, b.author),
           });
         }
       }
@@ -306,12 +441,13 @@ export async function GET(req: Request) {
           );
 
           if (!isDuplicate && finalTitle) {
+            const author = doc.author_name
+              ? doc.author_name.slice(0, 2).join(", ")
+              : "Autor desconhecido";
             results.push({
               id: `ol_${doc.key.replace("/works/", "")}`,
               title: finalTitle,
-              author: doc.author_name
-                ? doc.author_name.slice(0, 2).join(", ")
-                : "Autor desconhecido",
+              author,
               totalPages: doc.number_of_pages_median || 260,
               coverUrl,
               publishedYear: doc.first_publish_year
@@ -321,6 +457,7 @@ export async function GET(req: Request) {
               format: "Físico",
               description: null,
               isbn: doc.isbn ? doc.isbn[0] : null,
+              genre: inferGenre(finalTitle, author),
             });
           }
         }

@@ -45,6 +45,7 @@ export async function POST(req: Request) {
       currentPage = 0,
       status = "READING",
       notes,
+      genre,
     } = await req.json();
 
     if (!title || !author) {
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
         currentPercentage: percentage,
         status: status || "READING",
         notes: notes?.trim() || null,
+        genre: genre?.trim() || "Ficção",
       },
     });
 

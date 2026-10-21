@@ -36,6 +36,7 @@ export interface Book {
   currentPage: number;
   currentPercentage: number;
   status: string;
+  genre?: string | null;
   notes?: string | null;
   rating?: number | null;
   startDate?: string | null;
@@ -219,6 +220,12 @@ export function BookDetailModal({
                   {book.status === "READ" && "✅ Lido"}
                   {book.status === "DROPPED" && "⏸️ Pausado"}
                 </span>
+
+                {book.genre && (
+                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                    🏷️ {book.genre}
+                  </span>
+                )}
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
