@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Farol | Diário de Leituras Inteligente, Emoções & Radar de Preços",
   description: "Acompanhe seu progresso de leitura, sinta cada emoção e descubra quando seus livros favoritos baixam de preço.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {

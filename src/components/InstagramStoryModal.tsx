@@ -656,9 +656,10 @@ export function InstagramStoryModal({
                   <span className="font-semibold text-zinc-300">
                     📖 {userName}
                   </span>
-                  <span className="font-bold opacity-80 flex items-center gap-1">
+                  <span className="font-bold opacity-80 flex items-center gap-1.5">
                     <span>farol.pampo.tech</span>
-                    <span>🏮</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.png" alt="Farol" className="w-3.5 h-3.5 rounded object-cover" />
                   </span>
                 </div>
               </div>

@@ -27,7 +27,7 @@ export interface AvatarFrame {
 export const CENTER_THEMES: CenterThemeColor[] = [
   {
     id: "steam_purple",
-    name: "Roxo Steam Clássico 🔮",
+    name: "Roxo Místico Literário 🔮",
     bgGradient: "from-[#351540]/90 via-[#220d29]/90 to-[#120716]/95",
     borderClass: "border-purple-500/30",
     glowClass: "shadow-[0_0_50px_rgba(168,85,247,0.15)]",

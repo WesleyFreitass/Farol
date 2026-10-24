@@ -8,6 +8,7 @@ import {
   BarChart3,
   Library,
   Target,
+  Users,
 } from "lucide-react";
 
 interface User {
@@ -22,8 +23,8 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onOpenAddBook: () => void;
   onLogout: () => void;
-  activeTab?: "shelf" | "stats" | "wishlist" | "profile";
-  onTabChange?: (tab: "shelf" | "stats" | "wishlist" | "profile") => void;
+  activeTab?: "shelf" | "stats" | "wishlist" | "community" | "profile";
+  onTabChange?: (tab: "shelf" | "stats" | "wishlist" | "community" | "profile") => void;
   wishlistDroppedCount?: number;
   stats?: {
     total: number;
@@ -47,8 +48,9 @@ export function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center text-2xl shadow-inner shadow-amber-500/20">
-            🏮
+          <div className="w-10 h-10 rounded-xl overflow-hidden border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/15 bg-[#0d1624]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-110" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -115,6 +117,19 @@ export function Navbar({
                   🔥 {wishlistDroppedCount}
                 </span>
               ) : null}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("community")}
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === "community"
+                  ? "bg-slate-800 text-amber-300 border border-slate-700/80 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Comunidade</span>
             </button>
 
             <button
@@ -232,6 +247,19 @@ export function Navbar({
             >
               <BarChart3 className="w-5 h-5 mb-0.5" />
               <span className="text-[10px] tracking-tight">Gráficos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("community")}
+              className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all cursor-pointer ${
+                activeTab === "community"
+                  ? "text-amber-400 font-bold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <Users className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">Comunidade</span>
             </button>
 
             <button

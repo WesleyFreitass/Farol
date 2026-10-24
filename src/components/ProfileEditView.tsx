@@ -12,14 +12,15 @@ import {
   Star,
   User as UserIcon,
   Sparkles,
-  FileImage,
+  Sliders,
+  Calendar,
+  Target,
 } from "lucide-react";
 import { Book } from "./BookDetailModal";
 import {
   PROFILE_THEMES,
   AVATAR_FRAMES,
   CENTER_THEMES,
-  CenterThemeColor,
 } from "@/lib/profileThemes";
 import { ProfileData } from "./ProfileView";
 
@@ -36,9 +37,10 @@ export function ProfileEditView({
   onSaveSuccess,
   onCancel,
 }: ProfileEditViewProps) {
+  // Reorganized logical tab sequence (Item 13)
   const [activeTab, setActiveTab] = useState<
-    "avatar" | "background" | "centerColor" | "featured" | "general"
-  >("background");
+    "general" | "avatar" | "theme" | "showcase"
+  >("general");
 
   // Form states
   const [name, setName] = useState(profile.name || "");
@@ -48,10 +50,19 @@ export function ProfileEditView({
     profile.profileBackground || ""
   );
   const [themeColor, setThemeColor] = useState(
-    profile.themeColor || "steam_purple"
+    profile.themeColor || "steam_midnight"
+  );
+  const [themeOpacity, setThemeOpacity] = useState<number>(
+    profile.themeOpacity ?? 85
+  );
+  const [replayMonth, setReplayMonth] = useState<string>(
+    profile.replayMonth || "current"
+  );
+  const [readingGoal, setReadingGoal] = useState<number>(
+    profile.readingGoal ?? 12
   );
   const [avatarFrame, setAvatarFrame] = useState(
-    profile.avatarFrame || "cosmic"
+    profile.avatarFrame || "gold"
   );
 
   const [selectedFeaturedBookIds, setSelectedFeaturedBookIds] = useState<
@@ -151,6 +162,9 @@ export function ProfileEditView({
           avatarUrl: avatarUrl.trim() || null,
           profileBackground: profileBackground.trim() || null,
           themeColor,
+          themeOpacity,
+          replayMonth,
+          readingGoal,
           avatarFrame,
           featuredBookIds: selectedFeaturedBookIds,
         }),
@@ -178,14 +192,14 @@ export function ProfileEditView({
     AVATAR_FRAMES.find((f) => f.id === avatarFrame) || AVATAR_FRAMES[0];
 
   return (
-    <div className="min-h-screen max-w-6xl mx-auto rounded-3xl bg-[#17141f] border border-zinc-800/80 shadow-2xl overflow-hidden animate-in fade-in duration-200">
+    <div className="min-h-screen max-w-6xl mx-auto rounded-3xl bg-[#0c121d] border border-slate-800 shadow-2xl overflow-hidden animate-in fade-in duration-200">
       {/* Top Header Bar */}
-      <div className="px-3 sm:px-6 py-3 sm:py-4 bg-[#1e1a29] border-b border-zinc-800 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="px-3 sm:px-6 py-3 sm:py-4 bg-[#101726] border-b border-slate-800 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={onCancel}
-            className="p-1.5 sm:p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
             title="Voltar ao perfil"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -193,12 +207,12 @@ export function ProfileEditView({
           <div className="min-w-0">
             <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5 sm:gap-2">
               <span className="truncate">Editar Perfil</span>
-              <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
-                Steam
+              <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0 font-medium">
+                Farol
               </span>
             </h1>
-            <p className="text-[11px] text-zinc-400 truncate hidden sm:block">
-              Personalize o fundo exterior, cor central, avatar animado e destaques
+            <p className="text-[11px] text-slate-400 truncate hidden sm:block">
+              Personalize sua identidade, avatar, fundo exterior, cor central e expositores
             </p>
           </div>
         </div>
@@ -207,7 +221,7 @@ export function ProfileEditView({
           <button
             type="button"
             onClick={onCancel}
-            className="px-2.5 sm:px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="px-2.5 sm:px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             Cancelar
           </button>
@@ -216,7 +230,7 @@ export function ProfileEditView({
             type="button"
             onClick={handleSaveAll}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -226,7 +240,7 @@ export function ProfileEditView({
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                <span>Salvar</span>
+                <span>Salvar Perfil</span>
               </>
             )}
           </button>
@@ -239,39 +253,34 @@ export function ProfileEditView({
         </div>
       )}
 
-      {/* Steam Configuration Container: Tabs + Content */}
-      <div className="flex flex-col md:flex-row md:min-h-[750px]">
-        {/* Steam Navigation Tabs: Horizontal scroll on mobile, vertical sidebar on desktop */}
-        <div className="w-full md:w-64 bg-[#14111c] border-b md:border-b-0 md:border-r border-zinc-800 p-2 sm:p-4 flex flex-row md:flex-col overflow-x-auto gap-1 sm:space-y-1 shrink-0 scrollbar-none">
-          <div className="hidden md:block text-[11px] font-bold uppercase tracking-wider text-zinc-500 px-3 py-2">
+      {/* Configuration Container: Sidebar Tabs + Content */}
+      <div className="flex flex-col md:flex-row md:min-h-[720px]">
+        {/* Navigation Tabs (Logical Order) */}
+        <div className="w-full md:w-64 bg-[#0a0e17] border-b md:border-b-0 md:border-r border-slate-800 p-2 sm:p-4 flex flex-row md:flex-col overflow-x-auto gap-1 sm:space-y-1 shrink-0 scrollbar-none">
+          <div className="hidden md:block text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-2">
             Configurações
           </div>
 
           {[
             {
-              id: "background",
-              label: "Fundo (GIF / Foto)",
-              icon: ImageIcon,
-            },
-            {
-              id: "centerColor",
-              label: "Cor do Meio",
-              icon: Palette,
+              id: "general",
+              label: "1. Geral & Bio",
+              icon: UserIcon,
             },
             {
               id: "avatar",
-              label: "Avatar & Moldura",
+              label: "2. Avatar & Moldura",
               icon: Sparkles,
             },
             {
-              id: "featured",
-              label: "Expositor",
-              icon: Star,
+              id: "theme",
+              label: "3. Fundo, Cor & Opacidade",
+              icon: Palette,
             },
             {
-              id: "general",
-              label: "Geral",
-              icon: UserIcon,
+              id: "showcase",
+              label: "4. Destaques & Replay",
+              icon: Star,
             },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -283,33 +292,218 @@ export function ProfileEditView({
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`whitespace-nowrap px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
                   isActive
-                    ? "bg-purple-900/40 text-purple-200 border border-purple-500/40 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-purple-400" : ""}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : ""}`} />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Right Configuration Panel */}
+        {/* Configuration Panel Content */}
         <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-          {/* TAB: PLANO DE FUNDO (BACKGROUND) */}
-          {activeTab === "background" && (
-            <div className="max-w-2xl space-y-6">
+          {/* TAB 1: GERAL (NOME & BIO) */}
+          {activeTab === "general" && (
+            <div className="max-w-2xl space-y-5">
               <div>
                 <h3 className="text-base font-bold text-white">
-                  Plano de Fundo do Perfil (Exterior)
+                  Identidade do Leitor
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  A imagem ou <strong>GIF animado</strong> fica no fundo geral da tela, aparecendo nas laterais esquerda e direita da coluna central do perfil.
+                <p className="text-xs text-slate-400 mt-1">
+                  Seu nome visível na comunidade e a biografia/frase marcante do seu perfil.
                 </p>
               </div>
 
-              {/* Upload from Machine (GIF / Image) */}
-              <div className="p-6 rounded-3xl bg-zinc-900/60 border-2 border-dashed border-zinc-700 hover:border-purple-500 transition-colors flex flex-col items-center justify-center text-center">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Nome de Perfil
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white outline-none focus:border-amber-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Biografia / Lema do Leitor
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Escreva algo sobre você, seus hábitos de leitura ou citações que inspiram sua vida..."
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 outline-none focus:border-amber-500 transition-colors resize-none leading-relaxed"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: AVATAR & MOLDURAS */}
+          {activeTab === "avatar" && (
+            <div className="max-w-2xl space-y-6">
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Foto de Perfil & Moldura
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Envie uma foto ou <strong>GIF animado</strong> da sua máquina para o seu avatar e escolha uma moldura exclusiva.
+                </p>
+              </div>
+
+              {/* Upload Avatar */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-3xl bg-slate-900/60 border border-slate-800">
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  accept="image/*,.gif"
+                  onChange={(e) => handleFileUpload(e, "avatar")}
+                  className="hidden"
+                />
+
+                {/* Avatar Preview with active frame */}
+                <div className="relative shrink-0">
+                  <div
+                    className={`w-28 h-28 rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center text-3xl font-black text-amber-300 ${activeFrame.borderClass} ${activeFrame.ringClass} ${activeFrame.glowClass}`}
+                  >
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{name ? name.charAt(0).toUpperCase() : "F"}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 text-center sm:text-left space-y-2">
+                  <h4 className="text-sm font-bold text-white">
+                    Avatar Personalizado
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Formatos suportados: <strong>.GIF animado</strong>, <strong>.PNG</strong> ou <strong>.JPG</strong> (até 35MB).
+                  </p>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={uploadingAvatar}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                    >
+                      {uploadingAvatar ? "Enviando..." : "📁 Escolher do Computador"}
+                    </button>
+                    {avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setAvatarUrl("")}
+                        className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Avatar Frames Grid */}
+              <div>
+                <span className="text-xs font-bold text-slate-300 block mb-3">
+                  Escolha sua Moldura de Leitor:
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {AVATAR_FRAMES.map((f) => {
+                    const isSelected = avatarFrame === f.id;
+                    return (
+                      <div
+                        key={f.id}
+                        onClick={() => setAvatarFrame(f.id)}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between bg-slate-900/60 ${
+                          isSelected
+                            ? "border-amber-400 ring-2 ring-amber-500/30"
+                            : "border-slate-800 hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-xs font-bold text-amber-300 ${f.borderClass} ${f.ringClass}`}
+                          >
+                            📖
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-white block">
+                              {f.name}
+                            </span>
+                            <span className="text-[10px] text-amber-300/80 font-medium">
+                              {f.badge}
+                            </span>
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: TEMA, FUNDO & TRANSLUCIDEZ */}
+          {activeTab === "theme" && (
+            <div className="max-w-2xl space-y-7">
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Plano de Fundo, Cor & Translucidez
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Defina o GIF ou foto exterior de tela cheia, a cor central do perfil e o nível exato de transparência.
+                </p>
+              </div>
+
+              {/* 1. Translucency Slider Control (Item 2) */}
+              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold text-white">
+                      Translucidez (Opacidade) da Cor do Meio:
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    {themeOpacity}%
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="20"
+                  max="100"
+                  step="5"
+                  value={themeOpacity}
+                  onChange={(e) => setThemeOpacity(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+
+                <div className="flex justify-between text-[11px] text-slate-400">
+                  <span>Mais transparente (vê mais o GIF/fundo)</span>
+                  <span>Mais sólido (foco nas informações)</span>
+                </div>
+              </div>
+
+              {/* 2. Upload from PC (GIF / Image) */}
+              <div className="p-6 rounded-3xl bg-slate-900/60 border-2 border-dashed border-slate-700 hover:border-amber-500/60 transition-colors flex flex-col items-center justify-center text-center">
                 <input
                   type="file"
                   ref={bgInputRef}
@@ -318,7 +512,7 @@ export function ProfileEditView({
                   className="hidden"
                 />
 
-                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-2">
                   {uploadingBg ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
@@ -327,49 +521,87 @@ export function ProfileEditView({
                 </div>
 
                 <h4 className="text-sm font-bold text-white">
-                  Carregar Imagem ou GIF Animado do Computador
+                  Carregar Fundo Exterior do Computador (.GIF ou Imagem)
                 </h4>
-                <p className="text-xs text-zinc-400 max-w-sm mt-1">
-                  Selecione um arquivo <strong>.GIF</strong>, <strong>.PNG</strong> ou <strong>.JPG</strong> da sua máquina (até 25MB).
+                <p className="text-xs text-slate-400 max-w-sm mt-1">
+                  Selecione um arquivo <strong>.GIF</strong> animado ou imagem (.PNG, .JPG) de até 35MB.
                 </p>
 
                 <button
                   type="button"
                   onClick={() => bgInputRef.current?.click()}
                   disabled={uploadingBg}
-                  className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white transition-all shadow-lg shadow-purple-500/20 cursor-pointer"
+                  className="mt-3.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
                 >
-                  {uploadingBg ? "Enviando GIF..." : "📁 Escolher Arquivo da Máquina"}
+                  {uploadingBg ? "Enviando Fundo..." : "📁 Escolher Arquivo da Máquina"}
                 </button>
               </div>
 
               {/* Current Background Preview */}
               {profileBackground && (
-                <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-2">
-                  <span className="text-xs font-bold text-zinc-300 block">
-                    Pré-visualização do Fundo Atual:
-                  </span>
-                  <div
-                    className="w-full h-40 rounded-xl bg-cover bg-center border border-zinc-700 shadow-inner"
-                    style={{ backgroundImage: `url(${profileBackground})` }}
-                  />
-                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
-                    <span className="truncate max-w-md">{profileBackground}</span>
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">Fundo Selecionado:</span>
                     <button
                       type="button"
                       onClick={() => setProfileBackground("")}
-                      className="text-red-400 hover:underline"
+                      className="text-rose-400 hover:underline"
                     >
                       Remover fundo
                     </button>
                   </div>
+                  <div
+                    className="w-full h-36 rounded-xl bg-cover bg-center border border-slate-700 shadow-inner"
+                    style={{ backgroundImage: `url(${profileBackground})` }}
+                  />
+                  <span className="text-[11px] text-slate-500 truncate block">
+                    {profileBackground}
+                  </span>
                 </div>
               )}
 
-              {/* Presets Gallery */}
+              {/* 3. Center Theme Colors */}
               <div>
-                <span className="text-xs font-bold text-zinc-300 block mb-3">
-                  Ou selecione um dos Temas Clássicos:
+                <span className="text-xs font-bold text-slate-300 block mb-3">
+                  Cor da Coluna Central:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {CENTER_THEMES.map((theme) => {
+                    const isSelected = themeColor === theme.id;
+                    return (
+                      <div
+                        key={theme.id}
+                        onClick={() => setThemeColor(theme.id)}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between bg-gradient-to-r ${theme.bgGradient} ${
+                          isSelected
+                            ? "border-amber-400 ring-2 ring-amber-500/40 shadow-lg"
+                            : "border-slate-800 hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-7 h-7 rounded-full border border-white/20 shadow-md"
+                            style={{ backgroundColor: theme.accentColor }}
+                          />
+                          <span className="text-xs font-bold text-white">
+                            {theme.name}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <div className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-black shadow-md">
+                            ✓
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Themes presets */}
+              <div>
+                <span className="text-xs font-bold text-slate-300 block mb-3">
+                  Ou escolha um Wallpaper Clássico da Coleção Farol:
                 </span>
                 <div className="grid grid-cols-2 gap-3">
                   {PROFILE_THEMES.map((theme) => {
@@ -378,10 +610,10 @@ export function ProfileEditView({
                       <div
                         key={theme.id}
                         onClick={() => setProfileBackground(theme.imageUrl)}
-                        className={`relative rounded-2xl overflow-hidden border h-28 cursor-pointer group transition-all ${
+                        className={`relative rounded-2xl overflow-hidden border h-24 cursor-pointer group transition-all ${
                           isSelected
-                            ? "border-purple-400 ring-2 ring-purple-500/40"
-                            : "border-zinc-800 hover:border-zinc-600"
+                            ? "border-amber-400 ring-2 ring-amber-500/40"
+                            : "border-slate-800 hover:border-slate-600"
                         }`}
                       >
                         <div
@@ -389,12 +621,12 @@ export function ProfileEditView({
                           style={{ backgroundImage: `url(${theme.imageUrl})` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                        <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
+                        <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
                           <span className="text-xs font-bold text-white">
                             {theme.name}
                           </span>
                           {isSelected && (
-                            <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">
+                            <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">
                               ✓
                             </span>
                           )}
@@ -407,290 +639,137 @@ export function ProfileEditView({
             </div>
           )}
 
-          {/* TAB: COR DO MEIO (TEMA CENTRAL) */}
-          {activeTab === "centerColor" && (
-            <div className="max-w-2xl space-y-6">
+          {/* TAB 4: DESTAQUES, REPLAY & META ANUAL */}
+          {activeTab === "showcase" && (
+            <div className="max-w-2xl space-y-7">
               <div>
                 <h3 className="text-base font-bold text-white">
-                  Cor do Meio (Container Central do Perfil)
+                  Expositores, Replay Mensal & Meta de Leitura
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Como no perfil da Steam, o centro possui uma cor e gradiente translúcido personalizável que contrasta perfeitamente com a imagem do fundo exterior.
+                <p className="text-xs text-slate-400 mt-1">
+                  Defina o que você mais se orgulha de exibir para os tripulantes do Farol.
                 </p>
               </div>
 
-              {/* Center Theme Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {CENTER_THEMES.map((theme) => {
-                  const isSelected = themeColor === theme.id;
-                  return (
-                    <div
-                      key={theme.id}
-                      onClick={() => setThemeColor(theme.id)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between bg-gradient-to-r ${theme.bgGradient} ${
-                        isSelected
-                          ? "border-purple-400 ring-2 ring-purple-500/40 shadow-lg"
-                          : "border-zinc-800 hover:border-zinc-700"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-7 h-7 rounded-full border border-white/20 shadow-md"
-                          style={{ backgroundColor: theme.accentColor }}
-                        />
-                        <div>
-                          <span className="text-xs font-bold text-white block">
-                            {theme.name}
-                          </span>
-                          <span className="text-[10px] text-zinc-400">
-                            Translúcido com gradiente
-                          </span>
-                        </div>
-                      </div>
-
-                      {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold shadow-md">
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Visual Mini Mockup */}
-              <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800 space-y-3">
-                <span className="text-xs font-bold text-zinc-300 block">
-                  Exemplo de como o centro ficará:
-                </span>
-                <div
-                  className={`w-full p-4 rounded-xl border bg-gradient-to-b ${activeCenterTheme.bgGradient} ${activeCenterTheme.borderClass} ${activeCenterTheme.glowClass}`}
+              {/* Replay Farol Month Selector (Item 7) */}
+              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white">
+                    Período em Destaque no Replay Farol:
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Escolha se o card de Replay no seu perfil deve exibir o mês corrente ou um mês específico da sua jornada literária:
+                </p>
+                <select
+                  value={replayMonth}
+                  onChange={(e) => setReplayMonth(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none focus:border-amber-500 cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-zinc-900 border border-zinc-700" />
-                    <div>
-                      <div className="h-3 w-28 bg-white/40 rounded mb-1.5" />
-                      <div className="h-2 w-44 bg-white/20 rounded" />
-                    </div>
-                  </div>
-                </div>
+                  <option value="current">⚡ Mês Atual / Dinâmico (Sempre em tempo real)</option>
+                  <option value="2026-10">Outubro / 2026</option>
+                  <option value="2026-09">Setembro / 2026</option>
+                  <option value="2026-08">Agosto / 2026</option>
+                  <option value="2026-07">Julho / 2026</option>
+                  <option value="2026-06">Junho / 2026</option>
+                  <option value="2026-05">Maio / 2026</option>
+                  <option value="2026-04">Abril / 2026</option>
+                  <option value="2026-03">Março / 2026</option>
+                  <option value="2026-02">Fevereiro / 2026</option>
+                  <option value="2026-01">Janeiro / 2026</option>
+                </select>
               </div>
-            </div>
-          )}
 
-          {/* TAB: AVATAR & MOLDURAS */}
-          {activeTab === "avatar" && (
-            <div className="max-w-2xl space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-white">
-                  Foto de Perfil & Moldura
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Envie uma foto ou <strong>GIF animado</strong> da sua máquina para o seu avatar.
+              {/* Annual Reading Goal (Item 18) */}
+              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-white">
+                    Meta Anual de Leitura (Desafio do Farol):
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Quantos livros você deseja concluir este ano?
                 </p>
-              </div>
-
-              {/* Upload Avatar */}
-              <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800">
-                <input
-                  type="file"
-                  ref={avatarInputRef}
-                  accept="image/*,.gif"
-                  onChange={(e) => handleFileUpload(e, "avatar")}
-                  className="hidden"
-                />
-
-                {/* Avatar Preview with active frame */}
-                <div className="relative shrink-0">
-                  <div
-                    className={`w-28 h-28 rounded-2xl overflow-hidden bg-zinc-950 flex items-center justify-center text-3xl font-black text-amber-300 ${activeFrame.borderClass} ${activeFrame.ringClass} ${activeFrame.glowClass}`}
-                  >
-                    {avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={avatarUrl}
-                        alt="Avatar preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>{name.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-center sm:text-left">
-                  <h4 className="text-sm font-bold text-white">
-                    Enviar GIF ou Foto do Computador
-                  </h4>
-                  <p className="text-xs text-zinc-400 max-w-sm">
-                    Suporta avatares animados no formato <strong>.GIF</strong>, exatamente como na Steam!
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() => avatarInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white transition-all shadow-md cursor-pointer"
-                  >
-                    {uploadingAvatar ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Enviando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>📁 Escolher Arquivo (.gif / .png / .jpg)</span>
-                      </>
-                    )}
-                  </button>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    value={readingGoal}
+                    onChange={(e) => setReadingGoal(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-32 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-amber-400 text-center outline-none focus:border-amber-500"
+                  />
+                  <span className="text-xs text-slate-300 font-medium">livros por ano</span>
                 </div>
               </div>
 
-              {/* Steam Avatar Frames */}
+              {/* Featured Books Showcase */}
               <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-2.5">
-                  Escolha a Moldura de Avatar:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {AVATAR_FRAMES.map((f) => {
-                    const isSelected = avatarFrame === f.id;
-                    return (
-                      <div
-                        key={f.id}
-                        onClick={() => setAvatarFrame(f.id)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
-                          isSelected
-                            ? "bg-zinc-800 border-purple-400 ring-2 ring-purple-500/30"
-                            : "bg-[#14141d] border-zinc-800 hover:border-zinc-700"
-                        }`}
-                      >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-300 block">
+                    Vitrine de Livros Favoritos (Até 6 livros):
+                  </span>
+                  <span className="text-xs font-bold text-amber-400">
+                    {selectedFeaturedBookIds.length} de 6 selecionados
+                  </span>
+                </div>
+
+                {shelfBooks.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {shelfBooks.map((book) => {
+                      const isFeatured = selectedFeaturedBookIds.includes(book.id);
+                      return (
                         <div
-                          className={`w-9 h-9 rounded-xl bg-zinc-900 shrink-0 flex items-center justify-center font-bold text-xs ${f.borderClass} ${f.glowClass}`}
+                          key={book.id}
+                          onClick={() => toggleFeaturedBook(book.id)}
+                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center text-center justify-between ${
+                            isFeatured
+                              ? "bg-amber-500/15 border-amber-400 ring-2 ring-amber-500/30"
+                              : "bg-slate-900/60 border-slate-800 hover:border-slate-700 opacity-75 hover:opacity-100"
+                          }`}
                         >
-                          {name.charAt(0).toUpperCase()}
+                          <div className="w-16 h-24 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden shadow-md flex items-center justify-center shrink-0 mb-2">
+                            {book.coverUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={book.coverUrl}
+                                alt={book.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-xl">📖</span>
+                            )}
+                          </div>
+
+                          <h4 className="text-xs font-bold text-white line-clamp-1">
+                            {book.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 truncate mt-0.5 max-w-[120px]">
+                            {book.author}
+                          </p>
+
+                          <div className="mt-2">
+                            {isFeatured ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40">
+                                ⭐ Destaque
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-500 hover:text-slate-300">
+                                + Destacar
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-semibold text-white block truncate">
-                            {f.name}
-                          </span>
-                          <span className="text-[10px] text-zinc-400">
-                            {f.badge}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB: EXPOSITOR DE DESTAQUES */}
-          {activeTab === "featured" && (
-            <div className="max-w-2xl space-y-5">
-              <div>
-                <h3 className="text-base font-bold text-white">
-                  Expositor de Livros Favoritos (Até 6 títulos)
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Selecione os livros que você quer colocar em destaque na sua vitrine do perfil.
-                </p>
-              </div>
-
-              {shelfBooks.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {shelfBooks.map((book) => {
-                    const isFeatured = selectedFeaturedBookIds.includes(book.id);
-                    return (
-                      <div
-                        key={book.id}
-                        onClick={() => toggleFeaturedBook(book.id)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center text-center justify-between ${
-                          isFeatured
-                            ? "bg-purple-950/40 border-purple-400 ring-2 ring-purple-500/40"
-                            : "bg-[#14141d] border-zinc-800/80 hover:border-zinc-700 opacity-75 hover:opacity-100"
-                        }`}
-                      >
-                        <div className="w-16 h-22 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shadow-md flex items-center justify-center shrink-0 mb-2">
-                          {book.coverUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={book.coverUrl}
-                              alt={book.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-xl">📖</span>
-                          )}
-                        </div>
-
-                        <h4 className="text-xs font-bold text-white line-clamp-1">
-                          {book.title}
-                        </h4>
-                        <p className="text-[11px] text-zinc-400 truncate mt-0.5 max-w-[120px]">
-                          {book.author}
-                        </p>
-
-                        <div className="mt-2">
-                          {isFeatured ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/40">
-                              ⭐ Destaque
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-zinc-500 hover:text-zinc-300">
-                              + Destacar
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-12 text-center text-zinc-500 text-xs">
-                  Sua estante ainda não tem livros cadastrados.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB: GERAL (NOME & BIO) */}
-          {activeTab === "general" && (
-            <div className="max-w-2xl space-y-4">
-              <div>
-                <h3 className="text-base font-bold text-white">
-                  Informações Gerais do Perfil
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Seu nome visível e biografia/resumo de leitor.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  Nome de Perfil
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  Biografia / Lema do Leitor
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="Escreva algo sobre você, seus hábitos ou seu lema de leitura..."
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white placeholder-zinc-500 outline-none focus:border-purple-500 resize-none leading-relaxed"
-                />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center text-slate-500 text-xs">
+                    Sua estante ainda não tem livros cadastrados.
+                  </div>
+                )}
               </div>
             </div>
           )}

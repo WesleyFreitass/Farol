@@ -35,6 +35,15 @@ export interface UserQuoteItem {
   createdAt: string;
 }
 
+export interface AchievementBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  color: string;
+}
+
 export interface ProfileData {
   id: string;
   name: string;
@@ -43,6 +52,9 @@ export interface ProfileData {
   bio?: string | null;
   profileBackground?: string | null;
   themeColor?: string | null;
+  themeOpacity?: number | null;
+  replayMonth?: string | null;
+  readingGoal?: number | null;
   avatarFrame?: string | null;
   featuredBookIds?: string | null;
   createdAt: string;
@@ -54,11 +66,21 @@ export interface ProfileData {
     totalBooks: number;
     totalPagesRead: number;
     totalQuotes: number;
+    wishlistCount?: number;
     level: number;
     totalXP: number;
     levelProgressPercent: number;
     badgeTitle: string;
     badgeIcon: string;
+    achievements?: AchievementBadge[];
+    replay?: {
+      title: string;
+      month: string;
+      booksRead: number;
+      pagesRead: number;
+      quotesCount: number;
+      readingCount: number;
+    };
   };
 }
 
@@ -177,10 +199,17 @@ export function ProfileView({
       {/* Subtle dark vignette on top of outer background */}
       <div className="fixed inset-0 bg-black/40 pointer-events-none" />
 
-      {/* 2. STEAM CENTER CONTAINER ("ONDE COLOCAMOS UMA COR NO MEIO") */}
+      {/* 2. CENTER CONTAINER ("ONDE COLOCAMOS UMA COR NO MEIO") */}
       <div
-        className={`relative z-10 max-w-5xl mx-auto min-h-screen my-0 sm:my-6 p-3 sm:p-7 shadow-2xl backdrop-blur-md border-x bg-gradient-to-b ${centerTheme.bgGradient} ${centerTheme.borderClass} ${centerTheme.glowClass}`}
+        className={`relative z-10 max-w-5xl mx-auto min-h-screen my-0 sm:my-6 p-3 sm:p-7 shadow-2xl border-x ${centerTheme.borderClass} ${centerTheme.glowClass} overflow-hidden rounded-2xl sm:rounded-3xl`}
       >
+        {/* Dynamic Translucent Background Layer */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-b ${centerTheme.bgGradient} backdrop-blur-md -z-10 transition-opacity duration-300`}
+          style={{
+            opacity: Math.max(0.15, Math.min(1, (profile.themeOpacity ?? 85) / 100)),
+          }}
+        />
         {/* STEAM PROFILE HEADER */}
         <div className="flex flex-col md:flex-row items-stretch md:items-start justify-between gap-4 sm:gap-6 pb-5 sm:pb-6 border-b border-white/10">
           {/* Left: Avatar with Steam Frame + Name/Status */}
@@ -237,7 +266,7 @@ export function ProfileView({
             {/* Steam Level Circle on desktop */}
             <div className="hidden md:flex items-center gap-2">
               <span className="text-xs text-zinc-300 font-bold uppercase tracking-wider">
-                Nível
+                Nível Farol
               </span>
               <div className="w-10 h-10 rounded-full border-2 border-amber-400 bg-black/60 flex items-center justify-center text-sm font-black text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.4)]">
                 {profile.stats.level}
@@ -343,7 +372,7 @@ export function ProfileView({
                           {profile.stats.level}
                         </span>
                         <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
-                          Nível Steam
+                          Nível Farol
                         </span>
                       </div>
                     </div>
@@ -364,12 +393,12 @@ export function ProfileView({
               </div>
             </div>
 
-            {/* SHOWCASE 2: RETROSPECTIVA REPLAY FAROL (EXACTLY LIKE "REPLAY STEAM" IN SCREENSHOT) */}
+            {/* SHOWCASE 2: RETROSPECTIVA REPLAY FAROL MENSAL (ITEM 7) */}
             <div className="rounded-xl bg-gradient-to-r from-teal-950/80 via-emerald-950/70 to-zinc-950/90 border border-emerald-500/30 overflow-hidden shadow-xl p-4 sm:p-5">
               <div className="flex items-center justify-between text-xs text-emerald-300 font-bold mb-3 sm:mb-4">
-                <span>Replay Farol 2024 / Leituras</span>
+                <span>{profile.stats.replay?.title || "Replay Farol / Leituras"}</span>
                 <span className="text-[10px] sm:text-[11px] text-zinc-400 font-normal">
-                  Resumo das suas aventuras
+                  Resumo das suas aventuras no mês
                 </span>
               </div>
 
@@ -377,10 +406,10 @@ export function ProfileView({
                 {/* Big number on the left */}
                 <div className="text-center sm:text-left shrink-0">
                   <span className="text-4xl sm:text-6xl font-black text-white leading-none">
-                    {profile.stats.booksRead || shelfBooks.length}
+                    {profile.stats.replay?.booksRead ?? profile.stats.booksRead}
                   </span>
                   <span className="text-[10px] sm:text-xs font-bold text-emerald-300 uppercase block tracking-wider mt-1">
-                    Livros lidos & salvos
+                    Livros no mês
                   </span>
                 </div>
 
@@ -388,7 +417,7 @@ export function ProfileView({
                 <div className="flex items-center gap-4 sm:gap-6 text-center">
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-white block">
-                      {profile.stats.totalPagesRead}
+                      {profile.stats.replay?.pagesRead ?? profile.stats.totalPagesRead}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Páginas
@@ -396,7 +425,7 @@ export function ProfileView({
                   </div>
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-white block">
-                      {profile.stats.totalQuotes}
+                      {profile.stats.replay?.quotesCount ?? profile.stats.totalQuotes}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Citações
@@ -404,7 +433,7 @@ export function ProfileView({
                   </div>
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-amber-400 block">
-                      {profile.stats.booksReading}
+                      {profile.stats.replay?.readingCount ?? profile.stats.booksReading}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Lendo
@@ -553,32 +582,58 @@ export function ProfileView({
               </div>
             )}
 
-            {/* 2. INSÍGNIAS (BADGES ROW - EXACTLY LIKE IN SCREENSHOT) */}
+            {/* 2. CONQUISTAS REAIS DO LEITOR (ITEM 4) */}
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-300">
-                  Insígnias{" "}
-                  <span className="text-white font-extrabold">
-                    {profile.stats.level}
+                  Conquistas{" "}
+                  <span className="text-amber-400 font-extrabold">
+                    {profile.stats.achievements?.filter((a) => a.unlocked).length || 0}/
+                    {profile.stats.achievements?.length || 6}
                   </span>
                 </span>
+                <span className="text-[10px] text-zinc-400">Passe o mouse</span>
               </div>
 
               {/* Badges icons row */}
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 border border-amber-400 flex items-center justify-center text-xs font-black text-amber-200 shadow-md">
-                  100+
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-900 border border-blue-400 flex items-center justify-center text-xs font-bold text-blue-200 shadow-md">
-                  {profile.stats.level}
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-700 to-pink-900 border border-purple-400 flex items-center justify-center text-xs font-bold text-purple-200 shadow-md">
-                  2025
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-600 to-amber-700 border border-orange-400 flex items-center justify-center text-sm shadow-md">
-                  🦊
-                </div>
+              <div className="grid grid-cols-6 gap-1.5">
+                {profile.stats.achievements?.map((badge) => (
+                  <div
+                    key={badge.id}
+                    title={`${badge.title} • ${badge.description} [${badge.unlocked ? "Desbloqueado! ✨" : "Bloqueado 🔒"}]`}
+                    className={`h-9 rounded-lg border flex items-center justify-center text-sm transition-all cursor-pointer ${
+                      badge.unlocked
+                        ? `bg-gradient-to-br ${badge.color} shadow-md hover:scale-110`
+                        : "bg-zinc-900/60 border-zinc-800 text-zinc-600 opacity-40 grayscale"
+                    }`}
+                  >
+                    <span>{badge.icon}</span>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* 2.5 META ANUAL DE LEITURA (ITEM 18) */}
+            <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-zinc-300 flex items-center gap-1.5">
+                  <span>🎯</span> Meta Anual {new Date().getFullYear()}
+                </span>
+                <span className="text-amber-400 font-bold">
+                  {profile.stats.booksRead} de {profile.readingGoal || 12}
+                </span>
+              </div>
+              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(100, Math.round((profile.stats.booksRead / (profile.readingGoal || 12)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <span className="text-[10px] text-zinc-400 block text-right font-medium">
+                {Math.min(100, Math.round((profile.stats.booksRead / (profile.readingGoal || 12)) * 100))}% concluído
+              </span>
             </div>
 
             {/* 3. STEAM STATS LIST (EXACTLY LIKE IN SCREENSHOT) */}

@@ -9,6 +9,8 @@ import { BookDetailModal, Book } from "@/components/BookDetailModal";
 import { ReadingStatsView } from "@/components/ReadingStatsView";
 import { WishlistView } from "@/components/WishlistView";
 import { ProfileView } from "@/components/ProfileView";
+import { ShelfSpinesView } from "@/components/ShelfSpinesView";
+import { CommunityView } from "@/components/CommunityView";
 import { Plus, Search, BookOpen, Sparkles, Heart, Compass } from "lucide-react";
 
 interface User {
@@ -31,8 +33,9 @@ export default function Home() {
 
   // Filters & Search & Tab
   const [activeTab, setActiveTab] = useState<
-    "shelf" | "stats" | "wishlist" | "profile"
+    "shelf" | "stats" | "wishlist" | "community" | "profile"
   >("shelf");
+  const [shelfViewMode, setShelfViewMode] = useState<"grid" | "spines">("grid");
   const [wishlistDroppedCount, setWishlistDroppedCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -208,7 +211,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-base font-bold text-white">Estante Individual</h3>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-                  Cada usuário possui login exclusivo, estantes próprias e histórico isolado e seguro no MariaDB.
+                  Cada usuário possui login exclusivo, estantes próprias e histórico de leitura 100% seguro e protegido.
                 </p>
               </div>
             </div>
@@ -222,10 +225,13 @@ export default function Home() {
               setWishlistDroppedCount(dropped)
             }
           />
+        ) : activeTab === "community" ? (
+          <CommunityView onSelectBook={(book) => setSelectedBook(book)} />
         ) : activeTab === "profile" ? (
           <ProfileView
             shelfBooks={books}
             onSelectBook={(book) => setSelectedBook(book)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
           />
         ) : (
           /* Authenticated Dashboard - Estante */
@@ -235,23 +241,56 @@ export default function Home() {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
                   <span>Olá, {user.name.split(" ")[0]}!</span>
-                  <span className="text-2xl">🏮</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.png" alt="Farol" className="w-8 h-8 rounded-lg object-cover" />
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">
                   Sua estante possui {books.length} título(s). O que você vai ler hoje?
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsAddBookOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Livro</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {/* 3D Spines vs Grid View Switcher (Item 10) */}
+                <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShelfViewMode("grid")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      shelfViewMode === "grid"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                    title="Modo Grade de Capas"
+                  >
+                    <span>🖼️</span>
+                    <span className="hidden sm:inline">Capas</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShelfViewMode("spines")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      shelfViewMode === "spines"
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                    title="Modo Estante de Madeira com Lombadas 3D"
+                  >
+                    <span>🪵</span>
+                    <span className="hidden sm:inline">Lombadas 3D</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsAddBookOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Adicionar Livro</span>
+                </button>
+              </div>
             </div>
 
-            {/* Filter and Search Bar */}
+            {/* Filter and Search Bar (Item 17) */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8 bg-slate-900/60 p-2 sm:p-3 rounded-2xl border border-slate-800/80">
               {/* Status Tabs */}
               <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
@@ -300,22 +339,29 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Bookshelf Grid */}
+            {/* Bookshelf Display (Grid vs 3D Spines) */}
             {loadingBooks ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-500">
                 <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
                 <p className="text-xs">Carregando seus livros...</p>
               </div>
             ) : filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                {filteredBooks.map((book) => (
-                  <BookCard
-                    key={book.id}
-                    book={book}
-                    onClick={() => setSelectedBook(book)}
-                  />
-                ))}
-              </div>
+              shelfViewMode === "spines" ? (
+                <ShelfSpinesView
+                  books={filteredBooks}
+                  onSelectBook={(book) => setSelectedBook(book)}
+                />
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                  {filteredBooks.map((book) => (
+                    <BookCard
+                      key={book.id}
+                      book={book}
+                      onClick={() => setSelectedBook(book)}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               /* Empty state */
               <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl bg-slate-900/40 border border-slate-800/60">

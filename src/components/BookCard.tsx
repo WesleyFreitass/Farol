@@ -35,7 +35,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
     >
       <div>
         {/* Cover with badge */}
-        <div className="relative aspect-[3/4] w-full rounded-2xl bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-950 border border-slate-800/80 overflow-hidden flex items-center justify-center text-5xl shadow-md group-hover:shadow-amber-500/10 transition-shadow">
+        <div className="relative aspect-[2/3] w-full rounded-2xl bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-950 border border-slate-800/80 overflow-hidden flex items-center justify-center text-5xl shadow-md group-hover:shadow-amber-500/10 transition-shadow">
           {book.coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

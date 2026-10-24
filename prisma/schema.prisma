@@ -15,7 +15,10 @@ model User {
   avatarUrl         String?
   bio               String?
   profileBackground String?        // theme id or custom url
-  themeColor        String?        @default("steam_purple") // center container color
+  themeColor        String?        @default("steam_midnight") // center container color
+  themeOpacity      Int?           @default(85) // 20 to 100 percent
+  replayMonth       String?        @default("current") // "current" or "YYYY-MM"
+  readingGoal       Int?           @default(12) // books per year
   avatarFrame       String?        // gold, cosmic, emerald, flame, neon
   featuredBookIds   String?        // JSON array of book IDs: '["id1", "id2"]'
   createdAt         DateTime       @default(now())
@@ -23,8 +26,42 @@ model User {
   books             UserBook[]
   wishlistItems     WishlistItem[]
   quotes            UserQuote[]
+  crewMembers       CrewMember[]   @relation("CrewCaptains")
+  captainsJoined    CrewMember[]   @relation("CrewMembers")
+  recommendations   BookRecommendation[]
 
   @@map("users")
+}
+
+model CrewMember {
+  id          String   @id @default(uuid())
+  captainId   String   // the user being followed
+  memberId    String   // the follower
+  createdAt   DateTime @default(now())
+
+  captain     User     @relation("CrewCaptains", fields: [captainId], references: [id], onDelete: Cascade)
+  member      User     @relation("CrewMembers", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([captainId, memberId])
+  @@index([captainId])
+  @@index([memberId])
+  @@map("crew_members")
+}
+
+model BookRecommendation {
+  id          String   @id @default(uuid())
+  senderId    String
+  userBookId  String?
+  bookTitle   String
+  author      String
+  coverUrl    String?
+  note        String?
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@map("book_recommendations")
 }
 
 model UserBook {

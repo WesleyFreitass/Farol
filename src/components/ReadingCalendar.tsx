@@ -21,6 +21,7 @@ interface DaySessionDetail {
   bookAuthor: string;
   bookCover?: string | null;
   session: ReadingSession;
+  deltaPages: number;
 }
 
 export function ReadingCalendar({ books }: ReadingCalendarProps) {
@@ -35,17 +36,26 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
     const map = new Map<string, DaySessionDetail[]>();
 
     books.forEach((book) => {
-      book.sessions?.forEach((session) => {
+      // Sort sessions chronologically to correctly compute delta pages read
+      const sortedSessions = [...(book.sessions || [])].sort(
+        (a, b) => new Date(a.readDate).getTime() - new Date(b.readDate).getTime()
+      );
+
+      sortedSessions.forEach((session, idx) => {
         try {
           const d = new Date(session.readDate);
           if (!isNaN(d.getTime())) {
             const dateKey = d.toISOString().split("T")[0];
+            const prevPage = idx === 0 ? 0 : sortedSessions[idx - 1].pageRead;
+            const deltaPages = Math.max(0, session.pageRead - prevPage);
+
             const existing = map.get(dateKey) || [];
             existing.push({
               bookTitle: book.title,
               bookAuthor: book.author,
               bookCover: book.coverUrl,
               session,
+              deltaPages,
             });
             map.set(dateKey, existing);
           }
@@ -87,7 +97,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
       const d = new Date(year, month - 1, prevMonthLastDay - i);
       const dateKey = d.toISOString().split("T")[0];
       const sessions = sessionsByDate.get(dateKey) || [];
-      const pagesRead = sessions.reduce((sum, s) => sum + s.session.pageRead, 0);
+      const pagesRead = sessions.reduce((sum, s) => sum + s.deltaPages, 0);
 
       daysList.push({
         date: d,
@@ -108,7 +118,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
       const d = new Date(year, month, day);
       const dateKey = d.toISOString().split("T")[0];
       const sessions = sessionsByDate.get(dateKey) || [];
-      const pagesRead = sessions.reduce((sum, s) => sum + s.session.pageRead, 0);
+      const pagesRead = sessions.reduce((sum, s) => sum + s.deltaPages, 0);
 
       if (sessions.length > 0) {
         readDaysCount++;
@@ -392,9 +402,20 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                       <p className="text-[11px] text-zinc-400">
                         por {item.bookAuthor}
                       </p>
-                      <span className="inline-block mt-1 text-[11px] font-semibold text-amber-300">
-                        Página {item.session.pageRead} ({item.session.percentageRead}%)
-                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] font-semibold text-amber-300">
+                          Página {item.session.pageRead} ({item.session.percentageRead}%)
+                        </span>
+                        {item.deltaPages > 0 ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            +{item.deltaPages} págs
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium text-zinc-500">
+                            (Anotação de emoção)
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
