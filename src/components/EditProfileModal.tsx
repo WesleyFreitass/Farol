@@ -11,6 +11,7 @@ import {
   Loader2,
   Save,
   Star,
+  Settings,
 } from "lucide-react";
 import { Book } from "./BookDetailModal";
 import { PROFILE_THEMES, AVATAR_FRAMES } from "@/lib/profileThemes";
@@ -128,8 +129,10 @@ export function EditProfileModal({
       <div className="relative w-full max-w-2xl bg-[#0e0e13] border border-zinc-800/80 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">⚙️</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Settings className="w-4 h-4" />
+            </div>
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">
                 Personalizar Perfil (Estilo Steam)
@@ -313,8 +316,8 @@ export function EditProfileModal({
           {/* TAB 2: FEATURED BOOKS SHOWCASE */}
           {activeTab === "featured" && (
             <div className="space-y-4">
-              <div className="p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-300 flex items-center gap-2">
-                <Star className="w-4 h-4 shrink-0 text-purple-400" />
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
+                <Star className="w-4 h-4 shrink-0 text-amber-400" />
                 <span>
                   Selecione até 5 livros da sua estante para brilharem no seu Expositor de Livros Favoritos!
                 </span>
@@ -330,7 +333,7 @@ export function EditProfileModal({
                         onClick={() => toggleFeaturedBook(book.id)}
                         className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center text-center justify-between ${
                           isFeatured
-                            ? "bg-purple-950/40 border-purple-400 ring-2 ring-purple-500/40"
+                            ? "bg-amber-950/40 border-amber-400 ring-2 ring-amber-500/40"
                             : "bg-[#14141d] border-zinc-800/80 hover:border-zinc-700 opacity-75 hover:opacity-100"
                         }`}
                       >
@@ -343,7 +346,7 @@ export function EditProfileModal({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-xl">📖</span>
+                            <BookOpen className="w-6 h-6 text-slate-600" />
                           )}
                         </div>
 
@@ -356,8 +359,9 @@ export function EditProfileModal({
 
                         <div className="mt-2">
                           {isFeatured ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/40">
-                              ⭐ Destaque
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              <span>Destaque</span>
                             </span>
                           ) : (
                             <span className="text-[10px] text-zinc-500 hover:text-zinc-300">

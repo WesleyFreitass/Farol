@@ -15,6 +15,7 @@ import {
   Sliders,
   Calendar,
   Target,
+  BookOpen,
 } from "lucide-react";
 import { Book } from "./BookDetailModal";
 import {
@@ -397,9 +398,10 @@ export function ProfileEditView({
                       type="button"
                       onClick={() => avatarInputRef.current?.click()}
                       disabled={uploadingAvatar}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      {uploadingAvatar ? "Enviando..." : "📁 Escolher do Computador"}
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploadingAvatar ? "Enviando..." : "Escolher do Computador"}</span>
                     </button>
                     {avatarUrl && (
                       <button
@@ -436,7 +438,7 @@ export function ProfileEditView({
                           <div
                             className={`w-9 h-9 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-xs font-bold text-amber-300 ${f.borderClass} ${f.ringClass}`}
                           >
-                            📖
+                            <BookOpen className="w-4 h-4 text-slate-500" />
                           </div>
                           <div>
                             <span className="text-xs font-bold text-white block">
@@ -449,7 +451,7 @@ export function ProfileEditView({
                         </div>
                         {isSelected && (
                           <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
-                            ✓
+                            <Check className="w-3.5 h-3.5" />
                           </span>
                         )}
                       </div>
@@ -531,9 +533,10 @@ export function ProfileEditView({
                   type="button"
                   onClick={() => bgInputRef.current?.click()}
                   disabled={uploadingBg}
-                  className="mt-3.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                  className="mt-3.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  {uploadingBg ? "Enviando Fundo..." : "📁 Escolher Arquivo da Máquina"}
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{uploadingBg ? "Enviando Fundo..." : "Escolher Arquivo da Máquina"}</span>
                 </button>
               </div>
 
@@ -589,7 +592,7 @@ export function ProfileEditView({
                         </div>
                         {isSelected && (
                           <div className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-black shadow-md">
-                            ✓
+                            <Check className="w-3.5 h-3.5" />
                           </div>
                         )}
                       </div>
@@ -627,7 +630,7 @@ export function ProfileEditView({
                           </span>
                           {isSelected && (
                             <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">
-                              ✓
+                              <Check className="w-3 h-3" />
                             </span>
                           )}
                         </div>
@@ -667,7 +670,7 @@ export function ProfileEditView({
                   onChange={(e) => setReplayMonth(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none focus:border-amber-500 cursor-pointer"
                 >
-                  <option value="current">⚡ Mês Atual / Dinâmico (Sempre em tempo real)</option>
+                  <option value="current">Mês Atual / Dinâmico (Sempre em tempo real)</option>
                   <option value="2026-10">Outubro / 2026</option>
                   <option value="2026-09">Setembro / 2026</option>
                   <option value="2026-08">Agosto / 2026</option>
@@ -739,7 +742,7 @@ export function ProfileEditView({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-xl">📖</span>
+                              <BookOpen className="w-6 h-6 text-slate-600" />
                             )}
                           </div>
 

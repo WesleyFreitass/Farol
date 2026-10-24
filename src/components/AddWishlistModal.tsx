@@ -11,6 +11,7 @@ import {
   Check,
   TrendingDown,
   Info,
+  Target,
 } from "lucide-react";
 import { Book } from "./BookDetailModal";
 import { BookSearchResult } from "@/app/api/books/search/route";
@@ -278,8 +279,10 @@ export function AddWishlistModal({
       <div className="relative w-full max-w-xl bg-[#0e0e13] border border-zinc-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl text-slate-100 flex flex-col max-h-[94vh]">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🎯</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Target className="w-4 h-4" />
+            </div>
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">
                 Novo Livro no Radar de Preços
@@ -307,7 +310,7 @@ export function AddWishlistModal({
         {/* Target Price Pre-Configuration (Optional) */}
         <div className="mt-3 flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 text-xs">
           <span className="text-zinc-400 flex items-center gap-1.5 font-medium shrink-0">
-            <span>🎯</span>
+            <Target className="w-3.5 h-3.5 text-amber-400" />
             <span>Preço Alvo Opcional:</span>
           </span>
           <div className="flex items-center gap-1.5 w-44">
@@ -408,7 +411,7 @@ export function AddWishlistModal({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-base">📖</span>
+                            <BookOpen className="w-5 h-5 text-slate-600" />
                           )}
                         </div>
 

@@ -264,9 +264,9 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs font-bold text-emerald-400">
               {daysWithReadingInMonth >= 15
-                ? "Ritmo Frequente 🚀"
+                ? "Ritmo Frequente"
                 : daysWithReadingInMonth > 0
-                ? "Em Progresso ✨"
+                ? "Em Progresso"
                 : "Aguardando Leitura"}
             </span>
           </div>
@@ -302,10 +302,10 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                 !d.isCurrentMonth
                   ? "opacity-30 bg-zinc-950/40 border-zinc-900"
                   : d.hasReading
-                  ? "bg-gradient-to-br from-amber-500/15 via-purple-500/10 to-zinc-900 border-amber-500/40 hover:border-amber-400 shadow-md shadow-amber-500/5 cursor-pointer transform hover:-translate-y-0.5"
+                  ? "bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-zinc-900 border-amber-500/40 hover:border-amber-400 shadow-md shadow-amber-500/5 cursor-pointer transform hover:-translate-y-0.5"
                   : "bg-[#14141d]/70 border-zinc-800/70 text-zinc-400"
               } ${isToday ? "ring-2 ring-amber-400/80" : ""} ${
-                isSelected ? "ring-2 ring-purple-500 border-purple-400 bg-purple-950/40" : ""
+                isSelected ? "ring-2 ring-amber-500 border-amber-400 bg-amber-950/40" : ""
               }`}
             >
               {/* Day Header */}
@@ -319,9 +319,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                 </span>
 
                 {d.hasReading && (
-                  <span className="text-[9px] sm:text-xs">
-                    🔥
-                  </span>
+                  <Flame className="w-3 h-3 text-amber-400 shrink-0" />
                 )}
               </div>
 
@@ -342,13 +340,13 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
 
       {/* Selected Day Details Panel */}
       {selectedDayKey && selectedDayData && selectedDayData.length > 0 && (
-        <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-[#161624] border border-purple-500/40 shadow-xl animate-in fade-in duration-200">
+        <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-amber-500/40 shadow-xl animate-in fade-in duration-200">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-800">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-purple-400" />
+              <CalendarIcon className="w-4 h-4 text-amber-400" />
               <h4 className="text-sm font-bold text-white">
                 Sessões do dia{" "}
-                <span className="text-purple-300">
+                <span className="text-amber-300">
                   {new Date(selectedDayKey + "T00:00:00").toLocaleDateString("pt-BR", {
                     day: "2-digit",
                     month: "long",
@@ -391,7 +389,7 @@ export function ReadingCalendar({ books }: ReadingCalendarProps) {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span>📖</span>
+                        <BookOpen className="w-4 h-4 text-slate-600" />
                       )}
                     </div>
 

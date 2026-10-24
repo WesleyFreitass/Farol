@@ -89,8 +89,10 @@ export function AddQuoteModal({
       <div className="relative w-full max-w-lg bg-[#0e0e13] border border-zinc-800/80 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📜</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Quote className="w-4 h-4" />
+            </div>
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">
                 Nova Citação Marcante

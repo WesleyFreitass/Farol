@@ -11,7 +11,7 @@ import { WishlistView } from "@/components/WishlistView";
 import { ProfileView } from "@/components/ProfileView";
 import { ShelfSpinesView } from "@/components/ShelfSpinesView";
 import { CommunityView } from "@/components/CommunityView";
-import { Plus, Search, BookOpen, Sparkles, Heart, Compass, LayoutGrid, Library } from "lucide-react";
+import { Plus, Search, BookOpen, Sparkles, Heart, Compass, LayoutGrid, Library, BarChart3, ShieldCheck } from "lucide-react";
 
 interface User {
   id: string;
@@ -35,6 +35,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "shelf" | "stats" | "wishlist" | "community" | "profile"
   >("shelf");
+  const [viewProfileUserId, setViewProfileUserId] = useState<string | null>(null);
   const [shelfViewMode, setShelfViewMode] = useState<"grid" | "spines">("grid");
   const [wishlistDroppedCount, setWishlistDroppedCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -142,7 +143,10 @@ export default function Home() {
         onOpenAddBook={() => setIsAddBookOpen(true)}
         onLogout={handleLogout}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => {
+          setViewProfileUserId(null);
+          setActiveTab(tab);
+        }}
         wishlistDroppedCount={wishlistDroppedCount}
         stats={stats}
       />
@@ -186,8 +190,8 @@ export default function Home() {
             {/* Feature Highlights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full max-w-4xl text-left">
               <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl mb-4">
-                  🎭
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+                  <Heart className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-white">44 Emoções Mapeadas</h3>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
@@ -196,8 +200,8 @@ export default function Home() {
               </div>
 
               <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl mb-4">
-                  📊
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+                  <BarChart3 className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-white">Progresso Flexível</h3>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
@@ -206,8 +210,8 @@ export default function Home() {
               </div>
 
               <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl mb-4">
-                  🔒
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-white">Estante Individual</h3>
                 <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
@@ -230,12 +234,24 @@ export default function Home() {
             onSelectBook={(book) => setSelectedBook(book)}
             currentUserId={user?.id}
             existingBooks={books}
+            onViewProfile={(targetUserId) => {
+              setViewProfileUserId(targetUserId);
+              setActiveTab("profile");
+            }}
           />
         ) : activeTab === "profile" ? (
           <ProfileView
             shelfBooks={books}
             onSelectBook={(book) => setSelectedBook(book)}
-            onNavigateTab={(tab) => setActiveTab(tab)}
+            onNavigateTab={(tab) => {
+              setViewProfileUserId(null);
+              setActiveTab(tab);
+            }}
+            viewUserId={viewProfileUserId}
+            onBack={() => {
+              setViewProfileUserId(null);
+              setActiveTab("community");
+            }}
           />
         ) : (
           /* Authenticated Dashboard - Estante */
@@ -367,8 +383,8 @@ export default function Home() {
             ) : (
               /* Empty state */
               <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl bg-slate-900/40 border border-slate-800/60">
-                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl mb-4">
-                  📚
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+                  <Library className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-bold text-white">
                   {searchQuery || statusFilter !== "ALL"

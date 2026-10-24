@@ -248,7 +248,7 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
             <span className="text-xl sm:text-3xl font-extrabold text-white">
               {stats.totalPagesRead}
             </span>
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
@@ -303,7 +303,7 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Pizza 1: Emoção */}
           <PieChart
-            title="Distribuição de Emoções 🎭"
+            title="Distribuição de Emoções"
             subtitle="Sentimentos vivenciados durante as leituras"
             emptyText="Nenhuma emoção registrada ainda"
             data={emotionsPieData}
@@ -311,7 +311,7 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
 
           {/* Pizza 2: Gênero */}
           <PieChart
-            title="Gêneros Literários 📚"
+            title="Gêneros Literários"
             subtitle="Proporção dos temas e categorias na sua estante"
             emptyText="Nenhum gênero cadastrado"
             data={genresPieData}
@@ -319,7 +319,7 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
 
           {/* Pizza 3: Autores */}
           <PieChart
-            title="Principais Autores ✍️"
+            title="Principais Autores"
             subtitle="Autores com maior presença nas suas estantes"
             emptyText="Nenhum autor cadastrado"
             data={authorsPieData}
@@ -327,7 +327,7 @@ export function ReadingStatsView({ books }: ReadingStatsViewProps) {
 
           {/* Pizza 4: Meses */}
           <PieChart
-            title="Leituras por Mês 📅"
+            title="Leituras por Mês"
             subtitle="Distribuição da frequência de sessões ao longo do ano"
             emptyText="Nenhuma leitura registrada nos meses"
             data={monthsPieData}

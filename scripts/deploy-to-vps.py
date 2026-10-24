@@ -11,6 +11,15 @@ PASSWORD = "Nead1075846@"
 PORT = 22
 
 def main():
+    print("[0/5] Gerando git bundle com os commits mais recentes...")
+    bundle_local = "farol-latest.bundle"
+    if os.path.exists(bundle_local):
+        os.remove(bundle_local)
+    ret = os.system("git bundle create farol-latest.bundle 910eb6c..main")
+    if ret != 0 or not os.path.exists(bundle_local):
+        # Fallback para bundle completo
+        os.system("git bundle create farol-latest.bundle db69596..main")
+
     print("[1/5] Conectando via SSH e SFTP na VPS...")
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

@@ -71,12 +71,14 @@ interface CommunityViewProps {
   onAddWishlist?: (title: string, author: string, coverUrl?: string) => void;
   currentUserId?: string;
   existingBooks?: Book[];
+  onViewProfile?: (userId: string) => void;
 }
 
 export function CommunityView({
   onSelectBook,
   currentUserId,
   existingBooks = [],
+  onViewProfile,
 }: CommunityViewProps) {
   const [feedMode, setFeedMode] = useState<"all" | "crew">("all");
   const [loading, setLoading] = useState(true);
@@ -223,7 +225,7 @@ export function CommunityView({
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <span>🌊</span>
+            <Compass className="w-4 h-4 text-amber-400" />
             <span>Mar Aberto</span>
           </button>
 
@@ -236,7 +238,7 @@ export function CommunityView({
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <span>⚓</span>
+            <Anchor className="w-4 h-4 text-slate-950" />
             <span>Minha Tripulação ({crewCaptainIds.length})</span>
           </button>
         </div>
@@ -276,7 +278,7 @@ export function CommunityView({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-sm">
-                        📖
+                        <BookOpen className="w-5 h-5 text-slate-600" />
                       </div>
                     )}
                   </div>
@@ -297,9 +299,14 @@ export function CommunityView({
                     </div>
 
                     <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 mt-1">
-                      <span className="text-[9px] text-slate-500 truncate">
+                      <button
+                        type="button"
+                        onClick={() => onViewProfile?.(rec.sender.id)}
+                        className="text-[9px] text-slate-400 hover:text-amber-300 transition-colors truncate cursor-pointer underline-offset-2 hover:underline"
+                        title={`Ver perfil de ${rec.sender.name}`}
+                      >
                         por {rec.sender.name}
-                      </span>
+                      </button>
 
                       {isSaved ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
@@ -360,9 +367,13 @@ export function CommunityView({
                 >
                   {/* Activity Author Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div
+                      onClick={() => onViewProfile?.(act.user.id)}
+                      className="flex items-center gap-3 cursor-pointer group/author"
+                      title={`Ver perfil de ${act.user.name}`}
+                    >
                       <div
-                        className={`w-10 h-10 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-sm font-bold text-amber-300 shrink-0 ${frame.borderClass}`}
+                        className={`w-10 h-10 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-sm font-bold text-amber-300 shrink-0 group-hover/author:scale-105 transition-transform ${frame.borderClass}`}
                       >
                         {act.user.avatarUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -378,7 +389,7 @@ export function CommunityView({
 
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm font-bold text-white">
+                          <span className="text-xs sm:text-sm font-bold text-white group-hover/author:text-amber-300 transition-colors">
                             {act.user.name}
                           </span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
@@ -414,7 +425,7 @@ export function CommunityView({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-base">
-                          📖
+                          <BookOpen className="w-5 h-5 text-slate-600" />
                         </div>
                       )}
                     </div>
@@ -524,10 +535,14 @@ export function CommunityView({
                   .map((crew) => (
                     <div
                       key={crew.id}
-                      className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between"
+                      className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between group/crew hover:border-amber-500/30 transition-colors"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-amber-300 shrink-0">
+                      <div
+                        onClick={() => onViewProfile?.(crew.id)}
+                        className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
+                        title={`Ver perfil de ${crew.name}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-amber-300 shrink-0 group-hover/crew:scale-105 transition-transform overflow-hidden">
                           {crew.avatarUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -540,7 +555,7 @@ export function CommunityView({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <span className="text-xs font-bold text-white block truncate">
+                          <span className="text-xs font-bold text-white block truncate group-hover/crew:text-amber-400 transition-colors">
                             {crew.name}
                           </span>
                           <span className="text-[10px] text-slate-400 block truncate">
@@ -552,7 +567,7 @@ export function CommunityView({
                       <button
                         type="button"
                         onClick={() => toggleCrew(crew.id)}
-                        className="text-[10px] font-semibold text-rose-400 hover:underline shrink-0"
+                        className="text-[10px] font-semibold text-rose-400 hover:underline shrink-0 ml-2 cursor-pointer"
                       >
                         Sair
                       </button>
@@ -583,10 +598,14 @@ export function CommunityView({
               {crewList.map((reader) => (
                 <div
                   key={reader.id}
-                  className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-3"
+                  className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-3 group/reader hover:border-amber-500/30 transition-colors"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-bold text-amber-300 shrink-0">
+                  <div
+                    onClick={() => onViewProfile?.(reader.id)}
+                    className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
+                    title={`Ver perfil de ${reader.name}`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-bold text-amber-300 shrink-0 group-hover/reader:scale-105 transition-transform overflow-hidden">
                       {reader.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -599,7 +618,7 @@ export function CommunityView({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <span className="text-xs font-bold text-white block truncate">
+                      <span className="text-xs font-bold text-white block truncate group-hover/reader:text-amber-400 transition-colors">
                         {reader.name}
                       </span>
                       <span className="text-[10px] text-slate-400 block truncate">
@@ -618,7 +637,7 @@ export function CommunityView({
                         : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20"
                     }`}
                   >
-                    {reader.isJoined ? "✓ Na Tripulação" : "+ Tripulação"}
+                    {reader.isJoined ? "Na Tripulação" : "+ Tripulação"}
                   </button>
                 </div>
               ))}

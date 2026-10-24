@@ -73,7 +73,7 @@ export function EmotionsPickerModal({
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
               Escolha até 6 emoções
             </h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-950/60 text-purple-300 border border-purple-800/40">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
               {currentSelection.length}/6
             </span>
           </div>
@@ -94,7 +94,7 @@ export function EmotionsPickerModal({
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2.5 bg-[#14141d] border border-purple-500/80 focus:ring-2 focus:ring-purple-600/30 rounded-2xl text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all shadow-inner"
+              className="w-full px-4 py-2.5 bg-slate-950 border border-amber-500/40 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 rounded-2xl text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all shadow-inner"
             />
           </div>
 
@@ -105,8 +105,8 @@ export function EmotionsPickerModal({
             title="Alternar agrupamento"
             className={`p-2.5 rounded-2xl border transition-colors cursor-pointer ${
               groupByColor
-                ? "bg-purple-950/60 border-purple-500/60 text-purple-300"
-                : "bg-[#14141d] border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white"
+                ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
+                : "bg-slate-950 border-slate-800 hover:border-slate-700 text-zinc-300 hover:text-white"
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -119,8 +119,8 @@ export function EmotionsPickerModal({
             title="Ordenar alfabeticamente"
             className={`p-2.5 rounded-2xl border transition-colors cursor-pointer ${
               sortAlphabetical
-                ? "bg-purple-950/60 border-purple-500/60 text-purple-300"
-                : "bg-[#14141d] border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white"
+                ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
+                : "bg-slate-950 border-slate-800 hover:border-slate-700 text-zinc-300 hover:text-white"
             }`}
           >
             <ArrowUpDown className="w-4 h-4" />
@@ -140,8 +140,8 @@ export function EmotionsPickerModal({
                   onClick={() => toggleEmotion(emotion.id)}
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     isSelected
-                      ? "border border-purple-500 bg-purple-950/40 text-purple-200 ring-1 ring-purple-500/50 shadow-sm"
-                      : "bg-[#14141d] border border-zinc-800/80 text-zinc-300 hover:border-zinc-700 hover:text-white"
+                      ? "border border-amber-500/70 bg-amber-950/40 text-amber-200 ring-1 ring-amber-500/30 shadow-sm"
+                      : "bg-slate-950 border border-slate-800 text-zinc-300 hover:border-amber-500/40 hover:text-white"
                   }`}
                 >
                   {/* Dot or Star */}
@@ -163,11 +163,11 @@ export function EmotionsPickerModal({
         </div>
 
         {/* Bottom with Centered Continuar Button */}
-        <div className="pt-4 mt-3 border-t border-zinc-800/80 flex justify-center">
+        <div className="pt-4 mt-3 border-t border-slate-800/80 flex justify-center">
           <button
             type="button"
             onClick={handleContinue}
-            className="px-8 py-2.5 rounded-xl text-sm font-semibold bg-[#161622] hover:bg-zinc-800 border border-zinc-700/60 text-zinc-100 transition-colors cursor-pointer"
+            className="px-8 py-2.5 rounded-xl text-sm font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
           >
             Continuar
           </button>

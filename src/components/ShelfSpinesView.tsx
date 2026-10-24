@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import { Anchor } from "lucide-react";
 import { Book } from "./BookDetailModal";
 
 interface ShelfSpinesViewProps {
@@ -14,7 +15,7 @@ const SPINE_GRADIENTS = [
   { from: "from-rose-950", via: "via-red-900", to: "to-rose-950", border: "border-amber-400/40", text: "text-amber-100" },
   { from: "from-amber-950", via: "via-amber-800", to: "to-yellow-950", border: "border-amber-400/40", text: "text-amber-100" },
   { from: "from-emerald-950", via: "via-emerald-800", to: "to-teal-950", border: "border-emerald-400/40", text: "text-emerald-100" },
-  { from: "from-purple-950", via: "via-indigo-900", to: "to-purple-950", border: "border-purple-400/30", text: "text-amber-300" },
+  { from: "from-slate-950", via: "via-slate-800", to: "to-slate-900", border: "border-amber-400/30", text: "text-amber-300" },
   { from: "from-zinc-950", via: "via-zinc-800", to: "to-zinc-900", border: "border-zinc-500/30", text: "text-zinc-200" },
   { from: "from-blue-950", via: "via-indigo-950", to: "to-blue-900", border: "border-indigo-400/30", text: "text-sky-200" },
   { from: "from-orange-950", via: "via-amber-900", to: "to-orange-950", border: "border-orange-400/30", text: "text-amber-200" },
@@ -158,7 +159,7 @@ export function ShelfSpinesView({ books, onSelectBook }: ShelfSpinesViewProps) {
 
             {/* Suporte de Livros (Aparador náutico de prateleira) */}
             <div className="h-44 sm:h-52 w-7 sm:w-8 rounded-r-lg bg-gradient-to-r from-[#24130a] to-[#140a05] border-y border-r border-[#4a2612] flex items-center justify-center opacity-60 shrink-0 self-end shadow-lg ml-1">
-              <span className="text-xs text-amber-500/30 font-mono select-none">⚓</span>
+              <Anchor className="w-3.5 h-3.5 text-amber-500/40" />
             </div>
           </div>
 

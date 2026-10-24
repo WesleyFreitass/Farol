@@ -2,15 +2,21 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getCurrentUser();
-    if (!session) {
+    const url = new URL(req.url);
+    const requestedUserId = url.searchParams.get("userId");
+    const targetUserId = requestedUserId || session?.userId;
+
+    if (!targetUserId) {
       return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     }
 
+    const isOwner = Boolean(session?.userId && session.userId === targetUserId);
+
     const user = await prisma.user.findUnique({
-      where: { id: session.userId },
+      where: { id: targetUserId },
       select: {
         id: true,
         name: true,
@@ -38,9 +44,23 @@ export async function GET() {
       );
     }
 
+    // Check if current user is following this reader in crew
+    let isJoinedToCrew = false;
+    if (session?.userId && !isOwner) {
+      const membership = await prisma.crewMember.findUnique({
+        where: {
+          captainId_memberId: {
+            captainId: targetUserId,
+            memberId: session.userId,
+          },
+        },
+      });
+      isJoinedToCrew = Boolean(membership);
+    }
+
     // Get all user books with sessions
     const allBooks = await prisma.userBook.findMany({
-      where: { userId: session.userId },
+      where: { userId: targetUserId },
       include: {
         sessions: {
           orderBy: { readDate: "asc" },
@@ -49,7 +69,7 @@ export async function GET() {
     });
 
     const wishlistCount = await prisma.wishlistItem.count({
-      where: { userId: session.userId },
+      where: { userId: targetUserId },
     });
 
     const booksRead = allBooks.filter((b) => b.status === "READ").length;
@@ -82,22 +102,22 @@ export async function GET() {
 
     // Farol Titles
     let badgeTitle = "Aprendiz do Farol";
-    let badgeIcon = "🕯️";
+    let badgeIcon = "candle";
     if (level >= 30) {
       badgeTitle = "Oráculo de Alexandria";
-      badgeIcon = "🏛️";
+      badgeIcon = "oracle";
     } else if (level >= 20) {
       badgeTitle = "Guardião dos Tomos";
-      badgeIcon = "👑";
+      badgeIcon = "crown";
     } else if (level >= 15) {
       badgeTitle = "Mestre da Biblioteca";
-      badgeIcon = "📜";
+      badgeIcon = "scroll";
     } else if (level >= 10) {
       badgeTitle = "Devorador de Páginas";
-      badgeIcon = "🔥";
+      badgeIcon = "flame";
     } else if (level >= 5) {
       badgeTitle = "Viajante Literário";
-      badgeIcon = "🧭";
+      badgeIcon = "compass";
     }
 
     // Dynamic Replay Farol Month Computation
@@ -141,7 +161,7 @@ export async function GET() {
         id: "first_pages",
         title: "Primeiras Páginas",
         description: "Leu 100 páginas no Farol",
-        icon: "🥉",
+        icon: "first_pages",
         unlocked: totalPagesRead >= 100,
         color: "from-amber-700 to-amber-900 border-amber-500",
       },
@@ -149,7 +169,7 @@ export async function GET() {
         id: "first_port",
         title: "Primeiro Porto",
         description: "Concluiu seu 1º livro",
-        icon: "⚓",
+        icon: "first_port",
         unlocked: booksRead >= 1,
         color: "from-blue-700 to-indigo-900 border-blue-400",
       },
@@ -157,15 +177,15 @@ export async function GET() {
         id: "quotes_collector",
         title: "Colecionador de Frases",
         description: "Salvou pelo menos 4 citações",
-        icon: "🖋️",
+        icon: "quotes_collector",
         unlocked: user.quotes.length >= 4,
-        color: "from-purple-700 to-pink-900 border-purple-400",
+        color: "from-amber-600 to-amber-900 border-amber-400",
       },
       {
         id: "navigator",
         title: "Navegador",
         description: "Concluiu 5 livros na sua estante",
-        icon: "⛵",
+        icon: "navigator",
         unlocked: booksRead >= 5,
         color: "from-emerald-700 to-teal-900 border-emerald-400",
       },
@@ -173,7 +193,7 @@ export async function GET() {
         id: "thousand_miles",
         title: "Mil Milhas",
         description: "Leu mais de 1.000 páginas",
-        icon: "🥈",
+        icon: "thousand_miles",
         unlocked: totalPagesRead >= 1000,
         color: "from-slate-600 to-slate-800 border-slate-300",
       },
@@ -181,7 +201,7 @@ export async function GET() {
         id: "radar_active",
         title: "Radar Ativo",
         description: "Possui pelo menos 3 livros na Wishlist",
-        icon: "💫",
+        icon: "radar_active",
         unlocked: wishlistCount >= 3,
         color: "from-amber-500 to-orange-700 border-amber-300",
       },
@@ -200,6 +220,10 @@ export async function GET() {
     return NextResponse.json({
       profile: {
         ...user,
+        email: isOwner ? user.email : "",
+        isOwner,
+        isJoinedToCrew,
+        shelfBooks: allBooks,
         stats: {
           booksRead,
           booksReading,

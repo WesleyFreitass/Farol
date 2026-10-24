@@ -15,6 +15,10 @@ import {
   History,
   ShoppingCart,
   CheckCircle2,
+  Target,
+  Store,
+  Award,
+  BookOpen,
 } from "lucide-react";
 import { AddWishlistModal } from "./AddWishlistModal";
 import { Book } from "./BookDetailModal";
@@ -211,7 +215,7 @@ export function WishlistView({
           </div>
           <span className="text-[10px] sm:text-[11px] text-emerald-400/90 font-medium mt-1 block">
             {summary.droppedCount > 0
-              ? "🎉 Ofertas ativas mais baratas que o cadastro!"
+              ? "Ofertas ativas mais baratas que o cadastro!"
               : "Nenhum desconto detectado no momento"}
           </span>
         </div>
@@ -240,7 +244,7 @@ export function WishlistView({
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
             <span>Radar de Preços & Desejos</span>
-            <span className="text-lg">🎯</span>
+            <Target className="w-5 h-5 text-amber-400" />
           </h2>
           <p className="text-xs text-zinc-400 mt-0.5">
             O Farol acompanha os preços dos seus livros desejados e te avisa quando o valor cai!
@@ -289,13 +293,14 @@ export function WishlistView({
         <button
           type="button"
           onClick={() => setFilter("DROPPED")}
-          className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+          className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
             filter === "DROPPED"
               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
               : "text-zinc-400 hover:text-emerald-300"
           }`}
         >
-          <span>🔥 Baixaram de Preço</span>
+          <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Baixaram de Preço</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/30 text-emerald-200 font-bold">
             {summary.droppedCount}
           </span>
@@ -340,7 +345,7 @@ export function WishlistView({
                 {item.priceDropped && (
                   <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-slate-950 px-4 py-1.5 text-xs font-extrabold flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <span>🎉</span>
+                      <Sparkles className="w-3.5 h-3.5 text-slate-950" />
                       <span>BAIXOU O PREÇO!</span>
                     </span>
                     <span className="bg-black/20 px-2 py-0.5 rounded-full text-[11px]">
@@ -362,7 +367,7 @@ export function WishlistView({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span>📖</span>
+                        <BookOpen className="w-6 h-6 text-slate-600" />
                       )}
                     </div>
 
@@ -377,8 +382,9 @@ export function WishlistView({
 
                       {/* Store tag */}
                       <div className="mt-2 flex items-center gap-1.5">
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-zinc-800/80 text-zinc-300 border border-zinc-700/60">
-                          🏪 {item.storeName || "Estante Virtual"}
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-zinc-800/80 text-zinc-300 border border-zinc-700/60 inline-flex items-center gap-1">
+                          <Store className="w-3 h-3 text-slate-400" />
+                          <span>{item.storeName || "Estante Virtual"}</span>
                         </span>
                       </div>
                     </div>
@@ -423,16 +429,23 @@ export function WishlistView({
 
                   {/* Target Price Status if set */}
                   {item.targetPrice && (
-                    <div className="mt-2.5 flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300">
-                      <span className="flex items-center gap-1">
-                        <span>🎯</span>
+                    <div className="mt-2.5 flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                      <span className="flex items-center gap-1.5">
+                        <Target className="w-3.5 h-3.5 text-amber-400" />
                         <span>Preço Alvo:</span>
                       </span>
-                      <span className="font-bold">
-                        R$ {item.targetPrice.toFixed(2)}{" "}
-                        {item.currentPrice <= item.targetPrice
-                          ? "✅ Atingido!"
-                          : "(Falta R$ " + (item.currentPrice - item.targetPrice).toFixed(2) + ")"}
+                      <span className="font-bold flex items-center gap-1">
+                        <span>R$ {item.targetPrice.toFixed(2)}</span>
+                        {item.currentPrice <= item.targetPrice ? (
+                          <span className="text-emerald-400 font-extrabold inline-flex items-center gap-0.5 ml-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Alvo Atingido!</span>
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400 font-normal">
+                            (Falta R$ {(item.currentPrice - item.targetPrice).toFixed(2)})
+                          </span>
+                        )}
                       </span>
                     </div>
                   )}
@@ -441,7 +454,7 @@ export function WishlistView({
                   <div className="mt-4 p-3.5 rounded-2xl bg-[#0b101b] border border-amber-500/20 shadow-inner">
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs">🏆</span>
+                        <Award className="w-3.5 h-3.5 text-amber-400" />
                         <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
                           Top 3 Lojas (Menor Preço)
                         </span>
@@ -460,7 +473,6 @@ export function WishlistView({
                             { store: "Mercado Livre", price: item.currentPrice * 1.15, url: `https://lista.mercadolivre.com.br/${encodeURIComponent(item.title + " livro")}` }
                           ].sort((a, b) => a.price - b.price)
                       ).slice(0, 3).map((offer, idx) => {
-                        const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
                         const pos = `${idx + 1}º`;
                         return (
                           <a
@@ -477,8 +489,8 @@ export function WishlistView({
                             }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs font-bold shrink-0">
-                                {medal} {pos}
+                              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold flex items-center justify-center border border-amber-500/30 shrink-0">
+                                {pos}
                               </span>
                               <span className="text-xs font-semibold truncate group-hover:text-white">
                                 {offer.store}
@@ -620,8 +632,8 @@ export function WishlistView({
       ) : (
         /* Empty State */
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl bg-[#12121a] border border-zinc-800/80">
-          <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl mb-4">
-            🎯
+          <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+            <Target className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-bold text-white">
             {filter === "DROPPED"

@@ -15,6 +15,10 @@ import {
   CheckCircle,
   ExternalLink,
   ChevronDown,
+  ArrowLeft,
+  Anchor,
+  Compass,
+  Target,
 } from "lucide-react";
 import { Book } from "./BookDetailModal";
 import { ProfileEditView } from "./ProfileEditView";
@@ -58,6 +62,9 @@ export interface ProfileData {
   avatarFrame?: string | null;
   featuredBookIds?: string | null;
   createdAt: string;
+  isOwner?: boolean;
+  isJoinedToCrew?: boolean;
+  shelfBooks?: Book[];
   quotes: UserQuoteItem[];
   featuredBooks: Book[];
   stats: {
@@ -87,26 +94,62 @@ export interface ProfileData {
 interface ProfileViewProps {
   shelfBooks?: Book[];
   onSelectBook?: (book: Book) => void;
-  onNavigateTab?: (tab: "shelf" | "stats" | "wishlist") => void;
+  onNavigateTab?: (tab: "shelf" | "stats" | "wishlist" | "community") => void;
+  viewUserId?: string | null;
+  onBack?: () => void;
+}
+
+function getAchievementIcon(id: string) {
+  switch (id) {
+    case "first_pages":
+      return <BookOpen className="w-4 h-4 text-amber-300" />;
+    case "first_port":
+      return <Anchor className="w-4 h-4 text-blue-300" />;
+    case "quotes_collector":
+      return <QuoteIcon className="w-4 h-4 text-amber-300" />;
+    case "navigator":
+      return <Compass className="w-4 h-4 text-emerald-300" />;
+    case "thousand_miles":
+      return <Award className="w-4 h-4 text-slate-200" />;
+    case "radar_active":
+      return <Target className="w-4 h-4 text-amber-400" />;
+    default:
+      return <Award className="w-4 h-4 text-amber-400" />;
+  }
+}
+
+function getBadgeLucideIcon(level: number) {
+  if (level >= 30) return <Sparkles className="w-5 h-5 text-amber-300" />;
+  if (level >= 20) return <Award className="w-5 h-5 text-amber-400" />;
+  if (level >= 15) return <BookOpen className="w-5 h-5 text-amber-400" />;
+  if (level >= 10) return <Flame className="w-5 h-5 text-amber-500" />;
+  if (level >= 5) return <Compass className="w-5 h-5 text-amber-400" />;
+  return <Sparkles className="w-5 h-5 text-amber-400" />;
 }
 
 export function ProfileView({
   shelfBooks = [],
   onSelectBook,
   onNavigateTab,
+  viewUserId,
+  onBack,
 }: ProfileViewProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isAddQuoteOpen, setIsAddQuoteOpen] = useState(false);
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null);
+  const [isJoinedCrew, setIsJoinedCrew] = useState(false);
 
   async function loadProfile() {
     try {
-      const res = await fetch("/api/profile");
+      setLoading(true);
+      const url = viewUserId ? `/api/profile?userId=${encodeURIComponent(viewUserId)}` : "/api/profile";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setProfile(data.profile);
+        setIsJoinedCrew(Boolean(data.profile?.isJoinedToCrew));
       }
     } catch (err) {
       console.error("Erro ao carregar perfil:", err);
@@ -117,7 +160,24 @@ export function ProfileView({
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [viewUserId]);
+
+  async function handleToggleCrew() {
+    if (!profile) return;
+    try {
+      const res = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle_crew", captainId: profile.id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsJoinedCrew(data.joined);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function handleDeleteQuote(quoteId: string) {
     if (!confirm("Deseja excluir esta citação do seu perfil?")) return;
@@ -139,7 +199,7 @@ export function ProfileView({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-36 text-zinc-500">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-400 mb-3" />
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-3" />
         <p className="text-xs">Carregando perfil do leitor...</p>
       </div>
     );
@@ -168,6 +228,9 @@ export function ProfileView({
     );
   }
 
+  const isOwner = profile.isOwner !== false;
+  const effectiveShelfBooks = isOwner ? shelfBooks : (profile.shelfBooks || shelfBooks);
+
   // 1. Outer Background Wallpaper (GIF or Image, can be from /uploads/... or preset)
   const bgTheme = PROFILE_THEMES.find((t) => t.id === profile.profileBackground);
   const bgImageUrl =
@@ -187,7 +250,7 @@ export function ProfileView({
     AVATAR_FRAMES.find((f) => f.id === profile.avatarFrame) || AVATAR_FRAMES[0];
 
   // Currently reading book (for the "Em leitura" sidebar widget)
-  const currentlyReading = shelfBooks.find((b) => b.status === "READING");
+  const currentlyReading = effectiveShelfBooks.find((b) => b.status === "READING");
 
   return (
     <div className="relative min-h-screen -mx-3 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-10 overflow-hidden select-none">
@@ -198,6 +261,23 @@ export function ProfileView({
       />
       {/* Subtle dark vignette on top of outer background */}
       <div className="fixed inset-0 bg-black/40 pointer-events-none" />
+
+      {/* Navigation back bar if viewing another user */}
+      {(!isOwner || onBack) && (
+        <div className="relative z-20 max-w-5xl mx-auto pt-3 px-3 sm:px-0 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-xs font-semibold text-slate-200 border border-slate-700/80 transition-all cursor-pointer shadow-lg active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <span>Voltar para a Comunidade</span>
+          </button>
+          <span className="text-xs text-slate-300 bg-slate-950/70 border border-slate-800 px-3 py-1 rounded-full">
+            Perfil de <strong className="text-amber-300 font-bold">{profile.name}</strong>
+          </span>
+        </div>
+      )}
 
       {/* 2. CENTER CONTAINER ("ONDE COLOCAMOS UMA COR NO MEIO") */}
       <div
@@ -275,8 +355,8 @@ export function ProfileView({
 
             {/* Badge Showcase Box */}
             <div className="flex items-center gap-2 sm:gap-3 bg-black/40 border border-white/10 p-2 sm:p-2.5 rounded-xl flex-1 md:flex-initial min-w-0 md:min-w-[200px]">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-zinc-900 border border-zinc-700/80 flex items-center justify-center text-base sm:text-xl shrink-0 shadow-inner">
-                {profile.stats.badgeIcon}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-zinc-900 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                {getBadgeLucideIcon(profile.stats.level)}
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-white block truncate">
@@ -288,14 +368,28 @@ export function ProfileView({
               </div>
             </div>
 
-            {/* Steam "Editar perfil" Button */}
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-md text-xs font-semibold bg-[#2a2a38] hover:bg-[#343446] text-zinc-200 border border-white/15 transition-all shadow-md cursor-pointer hover:text-white shrink-0 active:scale-95"
-            >
-              Editar perfil
-            </button>
+            {/* Steam "Editar perfil" Button or "Na Tripulação" toggle */}
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-md text-xs font-semibold bg-[#2a2a38] hover:bg-[#343446] text-zinc-200 border border-white/15 transition-all shadow-md cursor-pointer hover:text-white shrink-0 active:scale-95"
+              >
+                Editar perfil
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleToggleCrew}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 shadow-md ${
+                  isJoinedCrew
+                    ? "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+                    : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"
+                }`}
+              >
+                {isJoinedCrew ? "Na Tripulação" : "+ Tripulação"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -310,13 +404,15 @@ export function ProfileView({
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
                   Destaque de livros favoritos
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="text-[11px] text-zinc-400 hover:text-white cursor-pointer"
-                >
-                  Alterar destaque
-                </button>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="text-[11px] text-zinc-400 hover:text-white cursor-pointer"
+                  >
+                    Alterar destaque
+                  </button>
+                )}
               </div>
 
               <div className="p-3 sm:p-4">
@@ -340,7 +436,7 @@ export function ProfileView({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-xl">📖</span>
+                              <BookOpen className="w-6 h-6 text-slate-600" />
                             )}
                           </div>
                           <span className="text-[10px] sm:text-[11px] font-bold text-white block truncate mt-1 group-hover:text-amber-300">
@@ -380,15 +476,21 @@ export function ProfileView({
                   </div>
                 ) : (
                   <div className="py-8 text-center text-xs text-zinc-400">
-                    Nenhum livro em destaque ainda. Clique em{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      className="text-amber-300 underline cursor-pointer"
-                    >
-                      Editar perfil
-                    </button>{" "}
-                    para escolher seus livros favoritos!
+                    {isOwner ? (
+                      <>
+                        Nenhum livro em destaque ainda. Clique em{" "}
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="text-amber-300 underline cursor-pointer"
+                        >
+                          Editar perfil
+                        </button>{" "}
+                        para escolher seus livros favoritos!
+                      </>
+                    ) : (
+                      "Nenhum livro em destaque configurado por este leitor."
+                    )}
                   </div>
                 )}
               </div>
@@ -399,7 +501,7 @@ export function ProfileView({
               <div className="flex items-center justify-between text-xs text-emerald-300 font-bold mb-3 sm:mb-4">
                 <span>{profile.stats.replay?.title || "Replay Farol / Leituras"}</span>
                 <span className="text-[10px] sm:text-[11px] text-zinc-400 font-normal">
-                  Resumo das suas aventuras no mês
+                  Resumo das aventuras no mês
                 </span>
               </div>
 
@@ -444,7 +546,7 @@ export function ProfileView({
 
                 {/* Thumbnails of books with percentage badges */}
                 <div className="flex items-center gap-2 overflow-x-auto max-w-full sm:max-w-xs py-1">
-                  {shelfBooks.slice(0, 4).map((b) => (
+                  {effectiveShelfBooks.slice(0, 4).map((b) => (
                     <div key={b.id} className="relative w-11 h-14 sm:w-12 sm:h-16 rounded overflow-hidden shrink-0 border border-white/20">
                       {b.coverUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -456,7 +558,7 @@ export function ProfileView({
                         />
                       ) : (
                         <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-xs">
-                          📖
+                          <BookOpen className="w-4 h-4 text-slate-600" />
                         </div>
                       )}
                       <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] sm:text-[9px] text-center font-bold text-emerald-300 py-0.5">
@@ -475,14 +577,16 @@ export function ProfileView({
                   <QuoteIcon className="w-3.5 h-3.5 text-amber-400" />
                   <span>Citações Marcantes</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setIsAddQuoteOpen(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Nova Citação</span>
-                </button>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddQuoteOpen(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Nova Citação</span>
+                  </button>
+                )}
               </div>
 
               <div className="p-3 sm:p-4 space-y-3">
@@ -511,20 +615,22 @@ export function ProfileView({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteQuote(item.id)}
-                        disabled={deletingQuoteId === item.id}
-                        className="p-1.5 text-zinc-400 hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer shrink-0"
-                        title="Excluir citação"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteQuote(item.id)}
+                          disabled={deletingQuoteId === item.id}
+                          className="p-1.5 text-zinc-400 hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer shrink-0"
+                          title="Excluir citação"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
                   <div className="py-6 text-center text-xs text-zinc-500">
-                    Nenhuma citação favoritada ainda. Clique em &ldquo;Nova Citação&rdquo; para registrar uma frase!
+                    Nenhuma citação favoritada ainda.
                   </div>
                 )}
               </div>
@@ -533,7 +639,7 @@ export function ProfileView({
 
           {/* RIGHT COLUMN: STEAM SIDEBAR (~32% WIDTH) */}
           <div className="w-full md:w-72 space-y-5 shrink-0">
-            {/* 1. EM LEITURA (EXACTLY LIKE "EM JOGO VALHEIM" IN SCREENSHOT) */}
+            {/* 1. EM LEITURA */}
             {currentlyReading ? (
               <div className="p-3.5 rounded-xl bg-black/50 border border-emerald-500/30 space-y-2">
                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
@@ -551,7 +657,7 @@ export function ProfileView({
                       />
                     ) : (
                       <span className="text-xs flex items-center justify-center h-full">
-                        📖
+                        <BookOpen className="w-4 h-4 text-slate-600" />
                       </span>
                     )}
                   </div>
@@ -566,13 +672,15 @@ export function ProfileView({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => onSelectBook && onSelectBook(currentlyReading)}
-                  className="w-full py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-slate-950 transition-colors cursor-pointer"
-                >
-                  Continuar Leitura
-                </button>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectBook && onSelectBook(currentlyReading)}
+                    className="w-full py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-slate-950 transition-colors cursor-pointer"
+                  >
+                    Continuar Leitura
+                  </button>
+                )}
               </div>
             ) : (
               <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
@@ -585,7 +693,7 @@ export function ProfileView({
               </div>
             )}
 
-            {/* 2. CONQUISTAS REAIS DO LEITOR (ITEM 4) */}
+            {/* 2. CONQUISTAS REAIS DO LEITOR */}
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-300">
@@ -603,24 +711,25 @@ export function ProfileView({
                 {profile.stats.achievements?.map((badge) => (
                   <div
                     key={badge.id}
-                    title={`${badge.title} • ${badge.description} [${badge.unlocked ? "Desbloqueado! ✨" : "Bloqueado 🔒"}]`}
+                    title={`${badge.title} • ${badge.description} [${badge.unlocked ? "Desbloqueado" : "Bloqueado"}]`}
                     className={`h-9 rounded-lg border flex items-center justify-center text-sm transition-all cursor-pointer ${
                       badge.unlocked
                         ? `bg-gradient-to-br ${badge.color} shadow-md hover:scale-110`
                         : "bg-zinc-900/60 border-zinc-800 text-zinc-600 opacity-40 grayscale"
                     }`}
                   >
-                    <span>{badge.icon}</span>
+                    {getAchievementIcon(badge.id)}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* 2.5 META ANUAL DE LEITURA (ITEM 18) */}
+            {/* 2.5 META ANUAL DE LEITURA */}
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-300 flex items-center gap-1.5">
-                  <span>🎯</span> Meta Anual {new Date().getFullYear()}
+                  <Target className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Meta Anual {new Date().getFullYear()}</span>
                 </span>
                 <span className="text-amber-400 font-bold">
                   {profile.stats.booksRead} de {profile.readingGoal || 12}
@@ -639,7 +748,7 @@ export function ProfileView({
               </span>
             </div>
 
-            {/* 3. STEAM STATS LIST (EXACTLY LIKE IN SCREENSHOT) */}
+            {/* 3. STEAM STATS LIST */}
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs space-y-2">
               <div
                 onClick={() => onNavigateTab && onNavigateTab("shelf")}
@@ -681,7 +790,7 @@ export function ProfileView({
                 className="flex items-center justify-between text-zinc-400 hover:text-white cursor-pointer py-0.5 transition-colors"
               >
                 <span>Gráficos & Análises</span>
-                <span className="font-bold text-purple-300">Ver Guia</span>
+                <span className="font-bold text-amber-400">Ver Guia</span>
               </div>
             </div>
           </div>

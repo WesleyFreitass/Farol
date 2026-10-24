@@ -281,7 +281,7 @@ export function AddBookModal({
                           </span>
 
                           <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/60">
-                            <span>📖</span>
+                            <BookOpen className="w-3 h-3 text-slate-400" />
                             <span>{book.format}</span>
                           </span>
 
@@ -348,7 +348,7 @@ export function AddBookModal({
             })
           ) : hasSearched && searchQuery.length >= 3 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center text-slate-500">
-              <p className="text-2xl mb-1.5">🔍</p>
+              <Search className="w-6 h-6 text-slate-500 mb-1.5" />
               <p className="text-xs font-semibold text-slate-300">
                 Nenhum livro encontrado
               </p>

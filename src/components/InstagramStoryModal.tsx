@@ -16,6 +16,9 @@ import {
   Sliders,
   Loader2,
   Heart,
+  Camera,
+  Smartphone,
+  Image as ImageIcon,
 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { Book } from "./BookDetailModal";
@@ -46,7 +49,7 @@ const THEMES: Record<
 > = {
   amber: {
     name: "Farol Dourado",
-    icon: "🏮",
+    icon: "Farol",
     gradient: "from-[#1a1103] via-[#0a0702] to-[#120b02]",
     cardBg: "bg-amber-950/20",
     accentColor: "#f59e0b",
@@ -55,18 +58,18 @@ const THEMES: Record<
     border: "border-amber-500/30",
   },
   steam: {
-    name: "Steam Neon",
-    icon: "🔮",
-    gradient: "from-[#130d24] via-[#080511] to-[#170a2c]",
-    cardBg: "bg-purple-950/25",
-    accentColor: "#c084fc",
-    textColor: "text-purple-200",
-    badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    border: "border-purple-500/30",
+    name: "Mar Noturno",
+    icon: "Oceano",
+    gradient: "from-[#0a1220] via-[#050912] to-[#0d1627]",
+    cardBg: "bg-slate-900/40",
+    accentColor: "#38bdf8",
+    textColor: "text-sky-200",
+    badgeBg: "bg-sky-500/20 text-sky-300 border-sky-500/30",
+    border: "border-sky-500/30",
   },
   emerald: {
-    name: "Cozy Forest",
-    icon: "🌿",
+    name: "Floresta Calma",
+    icon: "Floresta",
     gradient: "from-[#061811] via-[#020a07] to-[#0a2016]",
     cardBg: "bg-emerald-950/25",
     accentColor: "#34d399",
@@ -75,8 +78,8 @@ const THEMES: Record<
     border: "border-emerald-500/30",
   },
   rose: {
-    name: "Romance Sunset",
-    icon: "🌸",
+    name: "Pôr do Sol",
+    icon: "Sunset",
     gradient: "from-[#240c16] via-[#0d0407] to-[#200913]",
     cardBg: "bg-rose-950/25",
     accentColor: "#fb7185",
@@ -86,7 +89,7 @@ const THEMES: Record<
   },
   obsidian: {
     name: "Obsidiana Noir",
-    icon: "🖤",
+    icon: "Noir",
     gradient: "from-[#18181b] via-[#09090b] to-[#111114]",
     cardBg: "bg-zinc-900/40",
     accentColor: "#e4e4e7",
@@ -197,7 +200,7 @@ export function InstagramStoryModal({
       link.download = `Farol_${cleanTitle}_${format === "story" ? "Story" : "Post"}.png`;
       link.href = dataUrl;
       link.click();
-      setStatusMessage("✅ Imagem baixada com sucesso!");
+      setStatusMessage("Imagem baixada com sucesso!");
     } catch (err) {
       console.error(err);
       setStatusMessage("Erro ao gerar imagem. Tente novamente.");
@@ -226,7 +229,7 @@ export function InstagramStoryModal({
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: `Lendo ${book.title}`,
-          text: `Acompanhando minha leitura de "${book.title}" no Farol 🏮`,
+          text: `Acompanhando minha leitura de "${book.title}" no Farol`,
           files: [file],
         });
         setStatusMessage("Compartilhado com sucesso!");
@@ -260,7 +263,7 @@ export function InstagramStoryModal({
         }),
       ]);
       setCopied(true);
-      setStatusMessage("✅ Imagem copiada para a área de transferência!");
+      setStatusMessage("Imagem copiada para a área de transferência!");
       setTimeout(() => setCopied(false), 2500);
     } catch (err) {
       console.error(err);
@@ -277,13 +280,13 @@ export function InstagramStoryModal({
         {/* Top Header */}
         <div className="px-5 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/70">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center text-lg">
-              📸
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Camera className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Gerador de Card para Instagram</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border border-pink-500/30">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
                   Bookstagram
                 </span>
               </h2>
@@ -323,7 +326,8 @@ export function InstagramStoryModal({
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
-                  <span>📱 Story (9:16)</span>
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Story (9:16)</span>
                 </button>
 
                 <button
@@ -335,7 +339,8 @@ export function InstagramStoryModal({
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
-                  <span>🖼️ Feed (4:5)</span>
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>Feed (4:5)</span>
                 </button>
               </div>
             </div>
@@ -476,7 +481,7 @@ export function InstagramStoryModal({
                   className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700/80 transition-colors cursor-pointer"
                   title="Compartilhar direto no Stories ou Feed do celular"
                 >
-                  <Share2 className="w-3.5 h-3.5 text-pink-400" />
+                  <Share2 className="w-3.5 h-3.5 text-amber-400" />
                   <span>Compartilhar</span>
                 </button>
 
@@ -654,7 +659,7 @@ export function InstagramStoryModal({
                 {/* 3. FOOTER: Reader Handle & Farol App Signature */}
                 <div className="relative z-10 pt-2 border-t border-white/10 flex items-center justify-between text-[9px] text-zinc-400">
                   <span className="font-semibold text-zinc-300">
-                    📖 {userName}
+                    {userName}
                   </span>
                   <span className="font-bold opacity-80 flex items-center gap-1.5">
                     <span>farol.pampo.tech</span>

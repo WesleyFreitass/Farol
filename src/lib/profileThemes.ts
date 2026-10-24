@@ -26,24 +26,24 @@ export interface AvatarFrame {
 
 export const CENTER_THEMES: CenterThemeColor[] = [
   {
-    id: "steam_purple",
-    name: "Roxo Místico Literário 🔮",
-    bgGradient: "from-[#351540]/90 via-[#220d29]/90 to-[#120716]/95",
-    borderClass: "border-purple-500/30",
-    glowClass: "shadow-[0_0_50px_rgba(168,85,247,0.15)]",
-    accentColor: "#a855f7",
-  },
-  {
     id: "steam_midnight",
-    name: "Azul Meia-Noite 🌌",
+    name: "Azul Meia-Noite",
     bgGradient: "from-[#11223e]/90 via-[#0c1628]/90 to-[#060b14]/95",
     borderClass: "border-blue-500/30",
     glowClass: "shadow-[0_0_50px_rgba(59,130,246,0.15)]",
     accentColor: "#3b82f6",
   },
   {
+    id: "steam_gold",
+    name: "Âmbar Dourado Farol",
+    bgGradient: "from-[#38240f]/90 via-[#24170a]/90 to-[#130c05]/95",
+    borderClass: "border-amber-500/30",
+    glowClass: "shadow-[0_0_50px_rgba(245,158,11,0.15)]",
+    accentColor: "#f59e0b",
+  },
+  {
     id: "steam_emerald",
-    name: "Verde Esmeralda 🌲",
+    name: "Verde Esmeralda",
     bgGradient: "from-[#0e2c1e]/90 via-[#0a1d14]/90 to-[#050f0a]/95",
     borderClass: "border-emerald-500/30",
     glowClass: "shadow-[0_0_50px_rgba(16,185,129,0.15)]",
@@ -51,31 +51,23 @@ export const CENTER_THEMES: CenterThemeColor[] = [
   },
   {
     id: "steam_crimson",
-    name: "Carmesim Nobre 🔥",
+    name: "Carmesim Nobre",
     bgGradient: "from-[#3b121c]/90 via-[#260b12]/90 to-[#140509]/95",
     borderClass: "border-rose-500/30",
     glowClass: "shadow-[0_0_50px_rgba(244,63,94,0.15)]",
     accentColor: "#f43f5e",
   },
   {
-    id: "steam_gold",
-    name: "Âmbar Dourado Farol 🏮",
-    bgGradient: "from-[#38240f]/90 via-[#24170a]/90 to-[#130c05]/95",
-    borderClass: "border-amber-500/30",
-    glowClass: "shadow-[0_0_50px_rgba(245,158,11,0.15)]",
-    accentColor: "#f59e0b",
-  },
-  {
     id: "steam_cyber",
-    name: "Cyberpunk Synthwave ⚡",
-    bgGradient: "from-[#2f113a]/90 via-[#10192e]/90 to-[#080b13]/95",
+    name: "Ciano Oceânico",
+    bgGradient: "from-[#082236]/90 via-[#0a1928]/90 to-[#050e18]/95",
     borderClass: "border-cyan-500/30",
     glowClass: "shadow-[0_0_50px_rgba(6,182,212,0.15)]",
     accentColor: "#06b6d4",
   },
   {
     id: "steam_pure_dark",
-    name: "Preto Obsidiana Clássico 🖤",
+    name: "Preto Obsidiana Clássico",
     bgGradient: "from-[#14141e]/92 via-[#0e0e14]/94 to-[#08080c]/98",
     borderClass: "border-zinc-800",
     glowClass: "shadow-2xl",
@@ -86,7 +78,7 @@ export const CENTER_THEMES: CenterThemeColor[] = [
 export const PROFILE_THEMES: ProfileTheme[] = [
   {
     id: "farol_noturno",
-    name: "Farol Noturno nas Ondas 🏮",
+    name: "Farol Noturno nas Ondas",
     category: "Farol Clássico",
     imageUrl:
       "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=2000&auto=format&fit=crop",
@@ -94,7 +86,7 @@ export const PROFILE_THEMES: ProfileTheme[] = [
   },
   {
     id: "biblioteca_antiga",
-    name: "Biblioteca Ancestral 🏰",
+    name: "Biblioteca Ancestral",
     category: "Fantasia & Clássicos",
     imageUrl:
       "https://images.unsplash.com/photo-1507842229451-9f22be220f86?q=80&w=2000&auto=format&fit=crop",
@@ -102,15 +94,15 @@ export const PROFILE_THEMES: ProfileTheme[] = [
   },
   {
     id: "nebulosa_cosmica",
-    name: "Nebulosa Cósmica 🌌",
+    name: "Nebulosa Cósmica",
     category: "Ficção Científica",
     imageUrl:
       "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=2000&auto=format&fit=crop",
-    accentColor: "#a855f7",
+    accentColor: "#38bdf8",
   },
   {
     id: "noite_chuvosa",
-    name: "Chuva & Café Aconchegante 🌧️",
+    name: "Chuva & Café Aconchegante",
     category: "Atmosférico",
     imageUrl:
       "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2000&auto=format&fit=crop",
@@ -118,7 +110,7 @@ export const PROFILE_THEMES: ProfileTheme[] = [
   },
   {
     id: "floresta_fantasia",
-    name: "Floresta dos Elfos 🌲",
+    name: "Floresta dos Elfos",
     category: "Fantasia",
     imageUrl:
       "https://images.unsplash.com/photo-1511497584788-87676104235f?q=80&w=2000&auto=format&fit=crop",
@@ -126,18 +118,18 @@ export const PROFILE_THEMES: ProfileTheme[] = [
   },
   {
     id: "cyberpunk_neon",
-    name: "Cyberpunk Synthwave 🔮",
+    name: "Aurora Astral",
     category: "Futurista",
     imageUrl:
       "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=2000&auto=format&fit=crop",
-    accentColor: "#ec4899",
+    accentColor: "#06b6d4",
   },
 ];
 
 export const AVATAR_FRAMES: AvatarFrame[] = [
   {
     id: "gold",
-    name: "Dourado Nobre 👑",
+    name: "Dourado Nobre",
     borderClass: "border-amber-400 border-2",
     ringClass: "ring-4 ring-amber-400/40",
     glowClass: "shadow-[0_0_20px_rgba(251,191,36,0.5)]",
@@ -145,15 +137,15 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
   },
   {
     id: "cosmic",
-    name: "Arcano Cósmico 🔮",
-    borderClass: "border-purple-400 border-2",
-    ringClass: "ring-4 ring-purple-500/40",
-    glowClass: "shadow-[0_0_20px_rgba(168,85,247,0.5)]",
+    name: "Azul Cobalto",
+    borderClass: "border-sky-400 border-2",
+    ringClass: "ring-4 ring-sky-500/40",
+    glowClass: "shadow-[0_0_20px_rgba(56,189,248,0.5)]",
     badge: "Místico",
   },
   {
     id: "flame",
-    name: "Fogo Primordial 🔥",
+    name: "Fogo Primordial",
     borderClass: "border-orange-500 border-2",
     ringClass: "ring-4 ring-orange-500/40",
     glowClass: "shadow-[0_0_20px_rgba(249,115,22,0.5)]",
@@ -161,7 +153,7 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
   },
   {
     id: "emerald",
-    name: "Élfico Esmeralda 🌿",
+    name: "Élfico Esmeralda",
     borderClass: "border-emerald-400 border-2",
     ringClass: "ring-4 ring-emerald-500/40",
     glowClass: "shadow-[0_0_20px_rgba(16,185,129,0.5)]",
@@ -169,15 +161,15 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
   },
   {
     id: "neon",
-    name: "Neon Synth ⚡",
+    name: "Ciano Synth",
     borderClass: "border-cyan-400 border-2",
-    ringClass: "ring-4 ring-pink-500/40",
+    ringClass: "ring-4 ring-cyan-500/40",
     glowClass: "shadow-[0_0_20px_rgba(6,182,212,0.5)]",
     badge: "Cyber",
   },
   {
     id: "classic",
-    name: "Minimalista Clássico ⚪",
+    name: "Minimalista Clássico",
     borderClass: "border-zinc-500 border-2",
     ringClass: "ring-2 ring-zinc-700/60",
     glowClass: "shadow-md",

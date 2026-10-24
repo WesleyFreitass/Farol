@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BarChart3 } from "lucide-react";
 
 export interface PieChartItem {
   id?: string;
@@ -202,7 +203,7 @@ export function PieChart({
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center text-zinc-500">
           <div className="w-16 h-16 rounded-full border-2 border-dashed border-zinc-800 flex items-center justify-center mb-3">
-            <span className="text-xl opacity-60">📊</span>
+            <BarChart3 className="w-6 h-6 text-zinc-600" />
           </div>
           <p className="text-xs font-semibold text-zinc-400">{emptyText}</p>
           <p className="text-[11px] text-zinc-600 mt-1 max-w-xs">

@@ -9,6 +9,7 @@ import {
   Library,
   Target,
   Users,
+  TrendingDown,
 } from "lucide-react";
 
 interface User {
@@ -117,8 +118,9 @@ export function Navbar({
               <Target className="w-3.5 h-3.5" />
               <span>Radar de Desejos</span>
               {wishlistDroppedCount !== undefined && wishlistDroppedCount > 0 ? (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-0.5">
-                  🔥 {wishlistDroppedCount}
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
+                  <TrendingDown className="w-3 h-3 text-emerald-400" />
+                  <span>{wishlistDroppedCount}</span>
                 </span>
               ) : null}
             </button>

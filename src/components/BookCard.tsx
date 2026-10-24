@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, BookOpen } from "lucide-react";
 import { EMOTIONS_BY_ID } from "@/lib/emotions";
 import { Book } from "./BookDetailModal";
 
@@ -45,9 +45,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <span className="opacity-70 group-hover:scale-110 transition-transform duration-300">
-              📖
-            </span>
+            <BookOpen className="w-10 h-10 text-slate-500 opacity-70 group-hover:scale-110 transition-transform duration-300" />
           )}
 
           {/* Status Badge */}
