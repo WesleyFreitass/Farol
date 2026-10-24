@@ -69,9 +69,15 @@ interface RecommendationItem {
 interface CommunityViewProps {
   onSelectBook?: (book: Book) => void;
   onAddWishlist?: (title: string, author: string, coverUrl?: string) => void;
+  currentUserId?: string;
+  existingBooks?: Book[];
 }
 
-export function CommunityView({ onSelectBook }: CommunityViewProps) {
+export function CommunityView({
+  onSelectBook,
+  currentUserId,
+  existingBooks = [],
+}: CommunityViewProps) {
   const [feedMode, setFeedMode] = useState<"all" | "crew">("all");
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -81,6 +87,25 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
   const [likedFeedIds, setLikedFeedIds] = useState<Set<string>>(new Set());
   const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
   const [joiningCrewId, setJoiningCrewId] = useState<string | null>(null);
+
+  function isBookInUserShelf(title: string, authorId?: string): boolean {
+    if (authorId && currentUserId && authorId === currentUserId) return true;
+    if (savedBooks.has(title)) return true;
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .trim();
+    const target = norm(title);
+    return existingBooks.some((b) => {
+      const bNorm = norm(b.title);
+      return (
+        bNorm === target ||
+        (target.length > 5 && bNorm.includes(target)) ||
+        (bNorm.length > 5 && target.includes(bNorm))
+      );
+    });
+  }
 
   async function loadCommunity() {
     try {
@@ -234,7 +259,7 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
 
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
             {recommendations.map((rec) => {
-              const isSaved = savedBooks.has(rec.bookTitle);
+              const isSaved = isBookInUserShelf(rec.bookTitle, rec.sender.id);
               return (
                 <div
                   key={rec.id}
@@ -246,6 +271,7 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
                       <img
                         src={rec.coverUrl}
                         alt={rec.bookTitle}
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -278,7 +304,7 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
                       {isSaved ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
                           <Check className="w-3 h-3" />
-                          <span>Salvo</span>
+                          <span>Na Estante</span>
                         </span>
                       ) : (
                         <button
@@ -322,7 +348,7 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
           ) : displayedActivities.length > 0 ? (
             displayedActivities.map((act) => {
               const isLiked = likedFeedIds.has(act.id);
-              const isSaved = savedBooks.has(act.title);
+              const isSaved = isBookInUserShelf(act.title, act.user.id);
               const frame =
                 AVATAR_FRAMES.find((f) => f.id === act.user.avatarFrame) ||
                 AVATAR_FRAMES[0];
@@ -383,6 +409,7 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
                         <img
                           src={act.coverUrl}
                           alt={act.title}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -433,15 +460,15 @@ export function CommunityView({ onSelectBook }: CommunityViewProps) {
                           : "text-slate-400 hover:text-amber-300 hover:bg-slate-800/60"
                       }`}
                     >
-                      <span className="text-sm">🏮</span>
-                      <span>{isLiked ? "Farol Aceso (+1)" : "Acender Farol"}</span>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isLiked ? "Iluminado (+1)" : "Iluminar"}</span>
                     </button>
 
                     <div className="flex items-center gap-2">
                       {isSaved ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/10">
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Na Estante</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 bg-slate-800/50 px-2.5 py-1.5 rounded-xl">
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Na sua estante</span>
                         </span>
                       ) : (
                         <button

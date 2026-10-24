@@ -55,6 +55,31 @@ export async function POST(req: Request) {
       );
     }
 
+    const cleanTitle = title.trim();
+    const normalizedTarget = cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // Previne estritamente a adição de livros duplicados na estante do usuário
+    const existingUserBooks = await prisma.userBook.findMany({
+      where: { userId: session.userId },
+      select: { id: true, title: true },
+    });
+
+    const isDuplicate = existingUserBooks.some((eb) => {
+      const ebNorm = eb.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+      return (
+        ebNorm === normalizedTarget ||
+        (normalizedTarget.length > 5 && ebNorm.includes(normalizedTarget)) ||
+        (ebNorm.length > 5 && normalizedTarget.includes(ebNorm))
+      );
+    });
+
+    if (isDuplicate) {
+      return NextResponse.json(
+        { error: "Este livro já está cadastrado na sua estante!" },
+        { status: 409 }
+      );
+    }
+
     const parsedTotalPages = Math.max(1, parseInt(totalPages, 10) || 1);
     const parsedCurrentPage = Math.max(
       0,

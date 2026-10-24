@@ -336,6 +336,7 @@ export function ProfileView({
                               <img
                                 src={book.coverUrl}
                                 alt={book.title}
+                                referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -450,6 +451,7 @@ export function ProfileView({
                         <img
                           src={b.coverUrl}
                           alt={b.title}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -544,6 +546,7 @@ export function ProfileView({
                       <img
                         src={currentlyReading.coverUrl}
                         alt={currentlyReading.title}
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
                     ) : (

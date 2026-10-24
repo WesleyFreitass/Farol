@@ -358,6 +358,7 @@ export function WishlistView({
                         <img
                           src={item.coverUrl}
                           alt={item.title}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       ) : (

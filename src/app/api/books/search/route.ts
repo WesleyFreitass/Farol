@@ -44,6 +44,109 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
     genre?: string;
   }[]
 > = {
+  throne: [
+    {
+      title: "A Guerra dos Tronos (As Crônicas de Gelo e Fogo, Livro 1)",
+      author: "George R. R. Martin",
+      totalPages: 600,
+      coverUrl: "https://covers.openlibrary.org/b/id/9269962-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #1",
+      description: "O primeiro livro da consagrada saga épica de George R. R. Martin em Westeros.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "A Fúria dos Reis (As Crônicas de Gelo e Fogo, Livro 2)",
+      author: "George R. R. Martin",
+      totalPages: 656,
+      coverUrl: "https://covers.openlibrary.org/b/id/8315180-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #2",
+      description: "A guerra dos cinco reis começa a devastar os Sete Reinos.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "A Tormenta de Espadas (As Crônicas de Gelo e Fogo, Livro 3)",
+      author: "George R. R. Martin",
+      totalPages: 884,
+      coverUrl: "https://covers.openlibrary.org/b/id/8595260-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #3",
+      description: "O Casamento Vermelho e o auge das intrigas políticas e militares.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "O Festim dos Corvos (As Crônicas de Gelo e Fogo, Livro 4)",
+      author: "George R. R. Martin",
+      totalPages: 644,
+      coverUrl: "https://covers.openlibrary.org/b/id/8447815-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #4",
+      description: "As consequências da guerra e o vácuo de poder em Porto Real.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "A Dança dos Dragões (As Crônicas de Gelo e Fogo, Livro 5)",
+      author: "George R. R. Martin",
+      totalPages: 872,
+      coverUrl: "https://covers.openlibrary.org/b/id/8235113-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #5",
+      description: "Daenerys em Meereen e Jon Snow na Muralha enfrentando o inverno que chegou.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "Fogo & Sangue (Volume 1)",
+      author: "George R. R. Martin",
+      totalPages: 664,
+      coverUrl: "https://covers.openlibrary.org/b/id/12063529-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "House of the Dragon",
+      description: "A história dos reis Targaryen em Westeros, de Aegon, o Conquistador à Dança dos Dragões.",
+      genre: "Alta Fantasia",
+    },
+  ],
+  game: [
+    {
+      title: "A Guerra dos Tronos (As Crônicas de Gelo e Fogo, Livro 1)",
+      author: "George R. R. Martin",
+      totalPages: 600,
+      coverUrl: "https://covers.openlibrary.org/b/id/9269962-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #1",
+      description: "O primeiro livro da consagrada saga épica de George R. R. Martin em Westeros.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "A Fúria dos Reis (As Crônicas de Gelo e Fogo, Livro 2)",
+      author: "George R. R. Martin",
+      totalPages: 656,
+      coverUrl: "https://covers.openlibrary.org/b/id/8315180-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #2",
+      description: "A guerra dos cinco reis começa a devastar os Sete Reinos.",
+      genre: "Alta Fantasia",
+    },
+    {
+      title: "A Tormenta de Espadas (As Crônicas de Gelo e Fogo, Livro 3)",
+      author: "George R. R. Martin",
+      totalPages: 884,
+      coverUrl: "https://covers.openlibrary.org/b/id/8595260-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      series: "As Crônicas de Gelo e Fogo, #3",
+      description: "O Casamento Vermelho e o auge das intrigas políticas e militares.",
+      genre: "Alta Fantasia",
+    },
+  ],
   harry: [
     {
       title: "Box Harry Potter Tradicional (Harry Potter, #1)",
@@ -414,6 +517,7 @@ async function searchEstanteVirtual(query: string): Promise<BookSearchResult[]> 
               const item = el.item;
               if (item && item.name) {
                 const rawName: string = item.name;
+                const rawLower = rawName.toLowerCase();
                 // Exclui combos/kits promocionais agrupados caso o usuário não busque por kit
                 if (
                   !query.toLowerCase().includes("kit") &&
@@ -423,11 +527,32 @@ async function searchEstanteVirtual(query: string): Promise<BookSearchResult[]> 
                   continue;
                 }
 
+                // Verifica se ao menos uma palavra-chave principal da busca está contida no título
+                const queryKeywords = query
+                  .toLowerCase()
+                  .split(/\s+/)
+                  .filter((w) => w.length > 2);
+                const matchesKeyword =
+                  queryKeywords.length === 0 ||
+                  queryKeywords.some((w) => rawLower.includes(w));
+                if (!matchesKeyword) {
+                  continue;
+                }
+
                 const title = cleanBookTitle(rawName);
-                const author =
+                const rawAuthor =
                   authorByItemName.get(rawName.toLowerCase().trim()) ||
-                  formatAuthorSlug(item.brand?.name) ||
-                  "Autor consagrado";
+                  formatAuthorSlug(item.brand?.name);
+
+                // Rejeita itens com autor inválido ou 'Cadastrado Nao' / 'Diversos'
+                if (
+                  !rawAuthor ||
+                  /cadastrado|diversos|desconhecido/i.test(rawAuthor)
+                ) {
+                  continue;
+                }
+
+                const author = rawAuthor;
 
                 const id =
                   "ev_" +
@@ -530,24 +655,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2. Consulta Catálogo Nacional (Estante Virtual - maior acervo brasileiro com lançamentos, traduções e capas)
-    try {
-      const evBooks = await searchEstanteVirtual(cleanQuery);
-      for (const b of evBooks) {
-        const isDuplicate = results.some(
-          (r) =>
-            r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
-            b.title.toLowerCase().replace(/[^a-z0-9]/g, "")
-        );
-        if (!isDuplicate) {
-          results.push(b);
-        }
-      }
-    } catch (evErr) {
-      console.warn("Falha na consulta do acervo nacional:", evErr);
-    }
-
-    // 3. Consulta Open Library (suporta busca geral e obras internacionais)
+    // 2. Consulta Open Library (catálogo internacional e traduções com metadados e capas oficiais)
     try {
       const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         cleanQuery
@@ -558,6 +666,7 @@ export async function GET(req: Request) {
           "User-Agent": "FarolApp/1.0 (farol.pampo.tech)",
           Accept: "application/json",
         },
+        signal: AbortSignal.timeout(4000),
         next: { revalidate: 3600 },
       });
 
@@ -630,6 +739,23 @@ export async function GET(req: Request) {
       }
     } catch (olErr) {
       console.warn("Falha na consulta Open Library:", olErr);
+    }
+
+    // 3. Consulta complementar Catálogo Nacional (Estante Virtual filtrado)
+    try {
+      const evBooks = await searchEstanteVirtual(cleanQuery);
+      for (const b of evBooks) {
+        const isDuplicate = results.some(
+          (r) =>
+            r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+            b.title.toLowerCase().replace(/[^a-z0-9]/g, "")
+        );
+        if (!isDuplicate) {
+          results.push(b);
+        }
+      }
+    } catch (evErr) {
+      console.warn("Falha na consulta do acervo nacional:", evErr);
     }
 
     // 3. Ordenação inteligente: colocar livros em Português 🇧🇷 no topo!

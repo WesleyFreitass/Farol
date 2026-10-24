@@ -41,6 +41,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
             <img
               src={book.coverUrl}
               alt={book.title}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (

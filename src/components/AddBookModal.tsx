@@ -45,10 +45,16 @@ export function AddBookModal({
   const [expandedInfoId, setExpandedInfoId] = useState<string | null>(null);
 
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef<number>(0);
 
   // Reset or run search when query, language or format changes
   useEffect(() => {
     if (!isOpen) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
     if (!searchQuery || searchQuery.trim().length < 3) {
       setSearchResults([]);
@@ -64,6 +70,10 @@ export function AddBookModal({
     setIsSearching(true);
     setHasSearched(true);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const currentReqId = ++requestIdRef.current;
+
     searchDebounceRef.current = setTimeout(async () => {
       try {
         const params = new URLSearchParams({
@@ -72,20 +82,31 @@ export function AddBookModal({
           format: formatFilter,
         });
 
-        const res = await fetch(`/api/books/search?${params.toString()}`);
+        const res = await fetch(`/api/books/search?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (res.ok) {
           const data = await res.json();
-          setSearchResults(data.results || []);
+          // Ignora respostas desatualizadas se uma nova busca foi disparada
+          if (currentReqId === requestIdRef.current) {
+            setSearchResults(data.results || []);
+          }
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
         console.error("Erro na busca de livros:", err);
       } finally {
-        setIsSearching(false);
+        if (currentReqId === requestIdRef.current) {
+          setIsSearching(false);
+        }
       }
-    }, 300);
+    }, 400);
 
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      controller.abort();
     };
   }, [searchQuery, langFilter, formatFilter, isOpen]);
 
@@ -230,6 +251,7 @@ export function AddBookModal({
                         <img
                           src={book.coverUrl}
                           alt={book.title}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       ) : (

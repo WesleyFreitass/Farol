@@ -11,7 +11,7 @@ import { WishlistView } from "@/components/WishlistView";
 import { ProfileView } from "@/components/ProfileView";
 import { ShelfSpinesView } from "@/components/ShelfSpinesView";
 import { CommunityView } from "@/components/CommunityView";
-import { Plus, Search, BookOpen, Sparkles, Heart, Compass } from "lucide-react";
+import { Plus, Search, BookOpen, Sparkles, Heart, Compass, LayoutGrid, Library } from "lucide-react";
 
 interface User {
   id: string;
@@ -226,7 +226,11 @@ export default function Home() {
             }
           />
         ) : activeTab === "community" ? (
-          <CommunityView onSelectBook={(book) => setSelectedBook(book)} />
+          <CommunityView
+            onSelectBook={(book) => setSelectedBook(book)}
+            currentUserId={user?.id}
+            existingBooks={books}
+          />
         ) : activeTab === "profile" ? (
           <ProfileView
             shelfBooks={books}
@@ -239,12 +243,8 @@ export default function Home() {
             {/* Header row */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                  <span>Olá, {user.name.split(" ")[0]}!</span>
-                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-amber-500/30 bg-[#0d1624] flex items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-125" />
-                  </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  Olá, {user.name.split(" ")[0]}!
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">
                   Sua estante possui {books.length} título(s). O que você vai ler hoje?
@@ -252,7 +252,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-3">
-                {/* 3D Spines vs Grid View Switcher (Item 10) */}
+                {/* 3D Spines vs Grid View Switcher */}
                 <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800 shrink-0">
                   <button
                     type="button"
@@ -264,7 +264,7 @@ export default function Home() {
                     }`}
                     title="Modo Grade de Capas"
                   >
-                    <span>🖼️</span>
+                    <LayoutGrid className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Capas</span>
                   </button>
                   <button
@@ -277,7 +277,7 @@ export default function Home() {
                     }`}
                     title="Modo Estante de Madeira com Lombadas 3D"
                   >
-                    <span>🪵</span>
+                    <Library className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Lombadas 3D</span>
                   </button>
                 </div>

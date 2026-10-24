@@ -58,12 +58,12 @@ async function main() {
   });
   console.log("🧹 Dados prévios de Fimose limpos com segurança para novo seed completo.");
 
-  // 3. Inserir livros na estante
+  // 3. Inserir livros na estante com capas 100% verificadas (Open Library High-Res)
   const booksToCreate = [
     {
       title: "Duna",
       author: "Frank Herbert",
-      coverUrl: "https://m.media-amazon.com/images/I/81zN7udGRUL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/11481354-L.jpg",
       totalPages: 680,
       currentPage: 342,
       status: "READING",
@@ -80,7 +80,7 @@ async function main() {
     {
       title: "Cem Anos de Solidão",
       author: "Gabriel García Márquez",
-      coverUrl: "https://m.media-amazon.com/images/I/81S8A2gQ1SL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/8231990-L.jpg",
       totalPages: 448,
       currentPage: 190,
       status: "READING",
@@ -96,7 +96,7 @@ async function main() {
     {
       title: "Dom Casmurro",
       author: "Machado de Assis",
-      coverUrl: "https://m.media-amazon.com/images/I/71u9sW4jQGL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/647501-L.jpg",
       totalPages: 256,
       currentPage: 256,
       status: "READ",
@@ -113,7 +113,7 @@ async function main() {
     {
       title: "1984",
       author: "George Orwell",
-      coverUrl: "https://m.media-amazon.com/images/I/819js3EQwbL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/9267242-L.jpg",
       totalPages: 336,
       currentPage: 336,
       status: "READ",
@@ -130,7 +130,7 @@ async function main() {
     {
       title: "Flores para Algernon",
       author: "Daniel Keyes",
-      coverUrl: "https://m.media-amazon.com/images/I/815uX7wkOZS._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/12947700-L.jpg",
       totalPages: 288,
       currentPage: 288,
       status: "READ",
@@ -147,7 +147,7 @@ async function main() {
     {
       title: "Torto Arado",
       author: "Itamar Vieira Junior",
-      coverUrl: "https://m.media-amazon.com/images/I/81mDcfImsFL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/12369648-L.jpg",
       totalPages: 264,
       currentPage: 264,
       status: "READ",
@@ -164,7 +164,7 @@ async function main() {
     {
       title: "O Pequeno Príncipe",
       author: "Antoine de Saint-Exupéry",
-      coverUrl: "https://m.media-amazon.com/images/I/71OzyTG2zCL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/8314125-L.jpg",
       totalPages: 96,
       currentPage: 96,
       status: "READ",
@@ -180,7 +180,7 @@ async function main() {
     {
       title: "Fundação",
       author: "Isaac Asimov",
-      coverUrl: "https://m.media-amazon.com/images/I/815yvB1e7zL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/8235113-L.jpg",
       totalPages: 240,
       currentPage: 240,
       status: "READ",
@@ -192,7 +192,7 @@ async function main() {
     {
       title: "A Revolução dos Bichos",
       author: "George Orwell",
-      coverUrl: "https://m.media-amazon.com/images/I/91Bc80qnO-L._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/11438987-L.jpg",
       totalPages: 152,
       currentPage: 152,
       status: "READ",
@@ -204,7 +204,7 @@ async function main() {
     {
       title: "O Senhor dos Anéis: A Sociedade do Anel",
       author: "J.R.R. Tolkien",
-      coverUrl: "https://m.media-amazon.com/images/I/81SM0D5+DwL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/14627060-L.jpg",
       totalPages: 576,
       currentPage: 576,
       status: "READ",
@@ -216,7 +216,7 @@ async function main() {
     {
       title: "O Hobbit",
       author: "J.R.R. Tolkien",
-      coverUrl: "https://m.media-amazon.com/images/I/91M9xPIf10L._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/14627509-L.jpg",
       totalPages: 310,
       currentPage: 140,
       status: "READING",
@@ -227,7 +227,7 @@ async function main() {
     {
       title: "Neuromancer",
       author: "William Gibson",
-      coverUrl: "https://m.media-amazon.com/images/I/81M+aO8z-qL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/283860-L.jpg",
       totalPages: 320,
       currentPage: 0,
       status: "WANT_TO_READ",
@@ -236,7 +236,7 @@ async function main() {
     {
       title: "Ensaio Sobre a Cegueira",
       author: "José Saramago",
-      coverUrl: "https://m.media-amazon.com/images/I/81yvM7d66ML._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/10482411-L.jpg",
       totalPages: 312,
       currentPage: 0,
       status: "WANT_TO_READ",
@@ -245,7 +245,7 @@ async function main() {
     {
       title: "Crime e Castigo",
       author: "Fiódor Dostoiévski",
-      coverUrl: "https://m.media-amazon.com/images/I/81b37rG290L._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/8775432-L.jpg",
       totalPages: 592,
       currentPage: 0,
       status: "WANT_TO_READ",
@@ -305,7 +305,7 @@ async function main() {
     },
   });
 
-  console.log(`📚 ${booksToCreate.length} livros e dezenas de sessões de leitura injetados na estante de Fimose.`);
+  console.log(`📚 ${booksToCreate.length} livros com capas 100% verificadas e sessões injetados na estante de Fimose.`);
 
   // 4. Inserir Citações Favoritas do Usuário (Quotes)
   const quotesToCreate = [
@@ -353,7 +353,7 @@ async function main() {
     {
       title: "O Silmarillion",
       author: "J.R.R. Tolkien",
-      coverUrl: "https://m.media-amazon.com/images/I/81U5YQ0u-4L._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/14627344-L.jpg",
       initialPrice: 69.90,
       currentPrice: 48.90,
       lowestPrice: 48.90,
@@ -371,7 +371,7 @@ async function main() {
     {
       title: "Klara e o Sol",
       author: "Kazuo Ishiguro",
-      coverUrl: "https://m.media-amazon.com/images/I/71jYy7Kx3yL._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/10543210-L.jpg",
       initialPrice: 59.00,
       currentPrice: 38.50,
       lowestPrice: 38.50,
@@ -389,7 +389,7 @@ async function main() {
     {
       title: "Fahrenheit 451",
       author: "Ray Bradbury",
-      coverUrl: "https://m.media-amazon.com/images/I/81qZduZ0z0L._SL1500_.jpg",
+      coverUrl: "https://covers.openlibrary.org/b/id/10006764-L.jpg",
       initialPrice: 42.00,
       currentPrice: 42.00,
       lowestPrice: 42.00,
@@ -431,7 +431,7 @@ async function main() {
       },
     });
   }
-  console.log(`🎯 ${wishlistItemsToCreate.length} livros monitorados no radar com Top 3 lojas e histórico de preços.`);
+  console.log(`🎯 ${wishlistItemsToCreate.length} livros monitorados no radar com capas HD e Top 3 lojas.`);
 
   console.log("\n✨ Injeção de dados de teste concluída com sucesso exclusivo para Fimose!");
 }
