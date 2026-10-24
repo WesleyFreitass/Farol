@@ -72,6 +72,7 @@ interface CommunityViewProps {
   currentUserId?: string;
   existingBooks?: Book[];
   onViewProfile?: (userId: string) => void;
+  onBookAdded?: () => void;
 }
 
 export function CommunityView({
@@ -79,6 +80,7 @@ export function CommunityView({
   currentUserId,
   existingBooks = [],
   onViewProfile,
+  onBookAdded,
 }: CommunityViewProps) {
   const [feedMode, setFeedMode] = useState<"all" | "crew">("all");
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,7 @@ export function CommunityView({
   const [likedFeedIds, setLikedFeedIds] = useState<Set<string>>(new Set());
   const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
   const [joiningCrewId, setJoiningCrewId] = useState<string | null>(null);
+  const [addingBookTitle, setAddingBookTitle] = useState<string | null>(null);
 
   function isBookInUserShelf(title: string, authorId?: string): boolean {
     if (authorId && currentUserId && authorId === currentUserId) return true;
@@ -171,7 +174,9 @@ export function CommunityView({
   }
 
   async function handleQuickAddToShelf(bookTitle: string, author: string, coverUrl?: string | null) {
+    if (addingBookTitle) return;
     try {
+      setAddingBookTitle(bookTitle);
       const res = await fetch("/api/books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,9 +190,14 @@ export function CommunityView({
       });
       if (res.ok) {
         setSavedBooks((prev) => new Set([...prev, bookTitle]));
+        if (onBookAdded) {
+          onBookAdded();
+        }
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setAddingBookTitle(null);
     }
   }
 
@@ -316,13 +326,18 @@ export function CommunityView({
                       ) : (
                         <button
                           type="button"
+                          disabled={addingBookTitle === rec.bookTitle}
                           onClick={() =>
                             handleQuickAddToShelf(rec.bookTitle, rec.author, rec.coverUrl)
                           }
-                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          <Plus className="w-3 h-3" />
-                          <span>Quero Ler</span>
+                          {addingBookTitle === rec.bookTitle ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Plus className="w-3 h-3" />
+                          )}
+                          <span>{addingBookTitle === rec.bookTitle ? "Salvando..." : "Quero Ler"}</span>
                         </button>
                       )}
                     </div>
@@ -484,13 +499,18 @@ export function CommunityView({
                       ) : (
                         <button
                           type="button"
+                          disabled={addingBookTitle === act.title}
                           onClick={() =>
                             handleQuickAddToShelf(act.title, act.author, act.coverUrl)
                           }
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          <BookmarkPlus className="w-3.5 h-3.5 text-amber-400" />
-                          <span>+ Quero Ler</span>
+                          {addingBookTitle === act.title ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                          ) : (
+                            <BookmarkPlus className="w-3.5 h-3.5 text-amber-400" />
+                          )}
+                          <span>{addingBookTitle === act.title ? "Salvando..." : "+ Quero Ler"}</span>
                         </button>
                       )}
                     </div>

@@ -15,6 +15,8 @@ services:
       - HOSTNAME=0.0.0.0
       - DATABASE_URL=${DATABASE_URL:-file:/app/data/dev.db}
       - JWT_SECRET=${JWT_SECRET:-farol-super-secret-jwt-key-2026-production-safe}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - farol_data:/app/data
       - farol_uploads:/app/public/uploads

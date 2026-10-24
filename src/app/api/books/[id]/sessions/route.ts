@@ -77,7 +77,7 @@ export async function POST(
 
     if (finalPage >= totalPages) {
       nextStatus = "READ";
-      if (!finishDate) finishDate = parsedDate;
+      finishDate = parsedDate;
     } else if (book.status === "WANT_TO_READ" && finalPage > 0) {
       nextStatus = "READING";
       if (!startDate) startDate = parsedDate;

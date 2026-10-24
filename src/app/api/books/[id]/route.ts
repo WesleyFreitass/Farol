@@ -72,7 +72,17 @@ export async function PATCH(
     if (body.title !== undefined) updateData.title = body.title.trim();
     if (body.author !== undefined) updateData.author = body.author.trim();
     if (body.coverUrl !== undefined) updateData.coverUrl = body.coverUrl?.trim() || null;
-    if (body.status !== undefined) updateData.status = body.status;
+    if (body.status !== undefined) {
+      updateData.status = body.status;
+      if (body.status === "READ" && existing.status !== "READ") {
+        updateData.finishDate = new Date();
+        const total = (updateData.totalPages as number) ?? existing.totalPages;
+        updateData.currentPage = total;
+        updateData.currentPercentage = 100;
+      } else if (body.status !== "READ" && existing.status === "READ") {
+        updateData.finishDate = null;
+      }
+    }
     if (body.genre !== undefined) updateData.genre = body.genre?.trim() || null;
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.rating !== undefined) {

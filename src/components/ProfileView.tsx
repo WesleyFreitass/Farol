@@ -83,10 +83,20 @@ export interface ProfileData {
     replay?: {
       title: string;
       month: string;
+      monthLabel?: string;
+      year?: number;
       booksRead: number;
       pagesRead: number;
       quotesCount: number;
       readingCount: number;
+      books?: {
+        id: string;
+        title: string;
+        author: string;
+        coverUrl?: string | null;
+        currentPercentage: number;
+        status: string;
+      }[];
     };
   };
 }
@@ -499,7 +509,10 @@ export function ProfileView({
             {/* SHOWCASE 2: RETROSPECTIVA REPLAY FAROL MENSAL (ITEM 7) */}
             <div className="rounded-xl bg-gradient-to-r from-teal-950/80 via-emerald-950/70 to-zinc-950/90 border border-emerald-500/30 overflow-hidden shadow-xl p-4 sm:p-5">
               <div className="flex items-center justify-between text-xs text-emerald-300 font-bold mb-3 sm:mb-4">
-                <span>{profile.stats.replay?.title || "Replay Farol / Leituras"}</span>
+                <span className="flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{profile.stats.replay?.title || "Replay Farol / Leituras"}</span>
+                </span>
                 <span className="text-[10px] sm:text-[11px] text-zinc-400 font-normal">
                   Resumo das aventuras no mês
                 </span>
@@ -509,10 +522,10 @@ export function ProfileView({
                 {/* Big number on the left */}
                 <div className="text-center sm:text-left shrink-0">
                   <span className="text-4xl sm:text-6xl font-black text-white leading-none">
-                    {profile.stats.replay?.booksRead ?? profile.stats.booksRead}
+                    {profile.stats.replay?.booksRead ?? 0}
                   </span>
                   <span className="text-[10px] sm:text-xs font-bold text-emerald-300 uppercase block tracking-wider mt-1">
-                    Livros no mês
+                    {profile.stats.replay?.booksRead === 1 ? "Livro lido no mês" : "Livros lidos no mês"}
                   </span>
                 </div>
 
@@ -520,7 +533,7 @@ export function ProfileView({
                 <div className="flex items-center gap-4 sm:gap-6 text-center">
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-white block">
-                      {profile.stats.replay?.pagesRead ?? profile.stats.totalPagesRead}
+                      {profile.stats.replay?.pagesRead ?? 0}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Páginas
@@ -528,7 +541,7 @@ export function ProfileView({
                   </div>
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-white block">
-                      {profile.stats.replay?.quotesCount ?? profile.stats.totalQuotes}
+                      {profile.stats.replay?.quotesCount ?? 0}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Citações
@@ -536,7 +549,7 @@ export function ProfileView({
                   </div>
                   <div>
                     <span className="text-lg sm:text-2xl font-black text-amber-400 block">
-                      {profile.stats.replay?.readingCount ?? profile.stats.booksReading}
+                      {profile.stats.replay?.readingCount ?? 0}
                     </span>
                     <span className="text-[9px] sm:text-[10px] text-zinc-400 uppercase">
                       Lendo
@@ -544,28 +557,44 @@ export function ProfileView({
                   </div>
                 </div>
 
-                {/* Thumbnails of books with percentage badges */}
-                <div className="flex items-center gap-2 overflow-x-auto max-w-full sm:max-w-xs py-1">
-                  {effectiveShelfBooks.slice(0, 4).map((b) => (
-                    <div key={b.id} className="relative w-11 h-14 sm:w-12 sm:h-16 rounded overflow-hidden shrink-0 border border-white/20">
-                      {b.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={b.coverUrl}
-                          alt={b.title}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-xs">
-                          <BookOpen className="w-4 h-4 text-slate-600" />
-                        </div>
-                      )}
-                      <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] sm:text-[9px] text-center font-bold text-emerald-300 py-0.5">
-                        {b.currentPercentage}%
-                      </span>
+                {/* Thumbnails of books active/read in this replay month */}
+                <div className="flex items-center gap-2 overflow-x-auto max-w-full sm:max-w-md py-1 scrollbar-none">
+                  {profile.stats.replay?.books && profile.stats.replay.books.length > 0 ? (
+                    profile.stats.replay.books.slice(0, 10).map((b) => (
+                      <div
+                        key={b.id}
+                        className="relative w-11 h-14 sm:w-12 sm:h-16 rounded overflow-hidden shrink-0 border border-white/20 shadow-md group"
+                        title={`${b.title} — ${b.author}`}
+                      >
+                        {b.coverUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={b.coverUrl}
+                            alt={b.title}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-xs">
+                            <BookOpen className="w-4 h-4 text-slate-600" />
+                          </div>
+                        )}
+                        <span
+                          className={`absolute bottom-0 inset-x-0 text-[8px] sm:text-[9px] text-center font-bold py-0.5 ${
+                            b.status === "READ"
+                              ? "bg-emerald-600/90 text-white"
+                              : "bg-black/80 text-emerald-300"
+                          }`}
+                        >
+                          {b.status === "READ" ? "Lido" : `${b.currentPercentage}%`}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-[11px] text-zinc-400 italic text-center sm:text-right py-2 px-3 bg-white/5 rounded-lg border border-white/5">
+                      Nenhuma leitura registrada neste mês
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -770,27 +799,11 @@ export function ProfileView({
                 </span>
               </div>
 
-              <div
-                onClick={() => onNavigateTab && onNavigateTab("wishlist")}
-                className="flex items-center justify-between text-zinc-400 hover:text-white cursor-pointer py-0.5 transition-colors"
-              >
-                <span>Radar de Desejos</span>
-                <span className="font-bold text-amber-300">Wishlist</span>
-              </div>
-
               <div className="flex items-center justify-between text-zinc-400 py-0.5">
                 <span>Citações Salvas</span>
                 <span className="font-bold text-zinc-200">
                   {profile.stats.totalQuotes}
                 </span>
-              </div>
-
-              <div
-                onClick={() => onNavigateTab && onNavigateTab("stats")}
-                className="flex items-center justify-between text-zinc-400 hover:text-white cursor-pointer py-0.5 transition-colors"
-              >
-                <span>Gráficos & Análises</span>
-                <span className="font-bold text-amber-400">Ver Guia</span>
               </div>
             </div>
           </div>

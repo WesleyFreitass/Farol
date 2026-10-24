@@ -2,6 +2,49 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function getDateYearMonth(
+  date: Date | string | null | undefined
+): string | null {
+  if (!date) return null;
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString().substring(0, 7);
+}
+
+function isDateInMonth(
+  date: Date | string | null | undefined,
+  targetMonth: string
+): boolean {
+  if (!date) return false;
+  const ym = getDateYearMonth(date);
+  if (!ym) return false;
+  if (ym === targetMonth) return true;
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}` === targetMonth;
+}
+
+function isDateAfterMonth(
+  date: Date | string | null | undefined,
+  targetMonth: string
+): boolean {
+  if (!date) return false;
+  const ym = getDateYearMonth(date);
+  if (!ym) return false;
+  return ym > targetMonth;
+}
+
+function isDateOnOrBeforeMonth(
+  date: Date | string | null | undefined,
+  targetMonth: string
+): boolean {
+  if (!date) return false;
+  const ym = getDateYearMonth(date);
+  if (!ym) return false;
+  return ym <= targetMonth;
+}
+
 export async function GET(req: Request) {
   try {
     const session = await getCurrentUser();
@@ -133,27 +176,202 @@ export async function GET(req: Request) {
     const formattedMonth = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
     const replayTitle = `Replay Farol — ${formattedMonth} / ${rYear}`;
 
-    // Filter books finished or read in that month
-    const booksReadInReplayMonth = allBooks.filter((b) => {
-      if (b.status === "READ" && b.finishDate) {
-        return b.finishDate.toISOString().startsWith(targetMonth);
-      }
-      return false;
-    });
+    // Helper to determine if a book was completed in a given month
+    function isBookCompletedInMonth(b: (typeof allBooks)[0], month: string): boolean {
+      if (b.status !== "READ") return false;
 
-    // Compute pages read in that month across all sessions
+      const sorted = [...(b.sessions || [])].sort(
+        (x, y) => new Date(x.readDate).getTime() - new Date(y.readDate).getTime()
+      );
+
+      // 1. Reached 100% or total pages in a session within target month
+      const hasFinishedSession = sorted.some(
+        (s) =>
+          isDateInMonth(s.readDate, month) &&
+          (s.percentageRead >= 100 || s.pageRead >= b.totalPages)
+      );
+      if (hasFinishedSession) return true;
+
+      // 2. Explicit finishDate in target month
+      if (b.finishDate && isDateInMonth(b.finishDate, month)) {
+        return true;
+      }
+
+      // 3. No explicit finishDate, but latest session in target month reached 100%
+      if (!b.finishDate && sorted.length > 0) {
+        const lastSession = sorted[sorted.length - 1];
+        if (
+          isDateInMonth(lastSession.readDate, month) &&
+          lastSession.percentageRead >= 100
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    // Filter books finished in that month
+    const booksReadInReplayMonth = allBooks.filter((b) =>
+      isBookCompletedInMonth(b, targetMonth)
+    );
+
+    // Compute pages read in that month across all sessions using chronological deltas
     let pagesReadInReplayMonth = 0;
+    const booksActiveInReplayMonthSet = new Set<string>();
+
     allBooks.forEach((b) => {
-      b.sessions?.forEach((s) => {
-        if (s.readDate && s.readDate.toISOString().startsWith(targetMonth)) {
-          pagesReadInReplayMonth += s.pageRead || 0;
+      const sortedSessions = [...(b.sessions || [])].sort(
+        (a, b) => new Date(a.readDate).getTime() - new Date(b.readDate).getTime()
+      );
+
+      let bookHadActivityInMonth = false;
+
+      sortedSessions.forEach((s, idx) => {
+        const prevPage = idx === 0 ? 0 : sortedSessions[idx - 1].pageRead;
+        const delta = Math.max(0, (s.pageRead || 0) - prevPage);
+
+        if (isDateInMonth(s.readDate, targetMonth)) {
+          pagesReadInReplayMonth += delta;
+          bookHadActivityInMonth = true;
         }
       });
+
+      // If book was finished in targetMonth but had no logged sessions (e.g. direct mark as read)
+      if (
+        b.status === "READ" &&
+        b.finishDate &&
+        isDateInMonth(b.finishDate, targetMonth) &&
+        sortedSessions.length === 0
+      ) {
+        pagesReadInReplayMonth += b.totalPages || b.currentPage || 0;
+        bookHadActivityInMonth = true;
+      }
+
+      if (bookHadActivityInMonth) {
+        booksActiveInReplayMonthSet.add(b.id);
+      }
     });
 
     const quotesInReplayMonth = user.quotes.filter((q) =>
-      q.createdAt.toISOString().startsWith(targetMonth)
+      isDateInMonth(q.createdAt, targetMonth)
     ).length;
+
+    const booksReadingInMonth = allBooks.filter((b) => {
+      // If book finished in targetMonth, it's counted in booksReadInReplayMonth
+      const isFinishedInTarget = booksReadInReplayMonth.some((rb) => rb.id === b.id);
+      if (isFinishedInTarget) return false;
+
+      if (targetMonth === currentMonthIso) {
+        return b.status === "READING";
+      }
+
+      // In historical month, was reading if it had sessions or was started in targetMonth
+      if (booksActiveInReplayMonthSet.has(b.id)) return true;
+      if (b.startDate && isDateInMonth(b.startDate, targetMonth)) return true;
+      return false;
+    }).length;
+
+    // Books to showcase in Replay card, sorted by most recent activity in targetMonth
+    const activeBooksInMonth: {
+      book: (typeof allBooks)[0];
+      latestActivityTime: number;
+    }[] = [];
+
+    allBooks.forEach((b) => {
+      const monthSessions = (b.sessions || []).filter((s) =>
+        isDateInMonth(s.readDate, targetMonth)
+      );
+      const isFinishedInTarget = isBookCompletedInMonth(b, targetMonth);
+      const isStartedInTarget = Boolean(
+        b.startDate && isDateInMonth(b.startDate, targetMonth)
+      );
+
+      if (monthSessions.length > 0 || isFinishedInTarget || isStartedInTarget) {
+        let latestTime = 0;
+        if (b.finishDate && isDateInMonth(b.finishDate, targetMonth)) {
+          latestTime = Math.max(latestTime, new Date(b.finishDate).getTime());
+        }
+        monthSessions.forEach((s) => {
+          latestTime = Math.max(latestTime, new Date(s.readDate).getTime());
+        });
+        if (latestTime === 0 && b.startDate) {
+          latestTime = new Date(b.startDate).getTime();
+        }
+        activeBooksInMonth.push({ book: b, latestActivityTime: latestTime });
+      }
+    });
+
+    // Sort descending by most recent activity in targetMonth
+    activeBooksInMonth.sort((a, b) => b.latestActivityTime - a.latestActivityTime);
+
+    const replayBooks = activeBooksInMonth.map(({ book: b }) => {
+      const sortedSessions = [...(b.sessions || [])].sort(
+        (a, b) => new Date(a.readDate).getTime() - new Date(b.readDate).getTime()
+      );
+
+      const sessionsUpToMonth = sortedSessions.filter((s) =>
+        isDateOnOrBeforeMonth(s.readDate, targetMonth)
+      );
+
+      let bookStatusInMonth = b.status;
+      let bookPercentageInMonth = b.currentPercentage;
+
+      // 1. Did the book finish in targetMonth?
+      const finishedInTargetMonth = isBookCompletedInMonth(b, targetMonth);
+
+      // 2. Did the book finish AFTER targetMonth (e.g. finished in October, but target is September)?
+      const finishedAfterTargetMonth =
+        b.status === "READ" &&
+        !finishedInTargetMonth &&
+        ((b.finishDate && isDateAfterMonth(b.finishDate, targetMonth)) ||
+          (!b.finishDate &&
+            sortedSessions.length > 0 &&
+            isDateAfterMonth(
+              sortedSessions[sortedSessions.length - 1].readDate,
+              targetMonth
+            )));
+
+      if (finishedInTargetMonth) {
+        bookStatusInMonth = "READ";
+        bookPercentageInMonth = 100;
+      } else if (finishedAfterTargetMonth) {
+        // Book was finished in a future month! In targetMonth it was still READING
+        bookStatusInMonth = "READING";
+        if (sessionsUpToMonth.length > 0) {
+          const lastSessionInPeriod =
+            sessionsUpToMonth[sessionsUpToMonth.length - 1];
+          bookPercentageInMonth = lastSessionInPeriod.percentageRead;
+        } else {
+          bookPercentageInMonth = 0;
+        }
+      } else if (targetMonth === currentMonthIso) {
+        bookStatusInMonth = finishedInTargetMonth ? "READ" : "READING";
+        bookPercentageInMonth = finishedInTargetMonth ? 100 : b.currentPercentage;
+      } else {
+        // Historical month, and book was not finished in or before targetMonth
+        bookStatusInMonth = "READING";
+        if (sessionsUpToMonth.length > 0) {
+          const lastSessionInPeriod =
+            sessionsUpToMonth[sessionsUpToMonth.length - 1];
+          bookPercentageInMonth = lastSessionInPeriod.percentageRead;
+        } else {
+          bookPercentageInMonth = 0;
+        }
+      }
+
+      return {
+        id: b.id,
+        title: b.title,
+        author: b.author,
+        coverUrl: b.coverUrl,
+        currentPercentage: Math.min(
+          100,
+          Math.max(0, Math.round(bookPercentageInMonth))
+        ),
+        status: bookStatusInMonth,
+      };
+    });
 
     // Real Badges & Achievements System
     const achievements = [
@@ -240,10 +458,13 @@ export async function GET(req: Request) {
           replay: {
             title: replayTitle,
             month: targetMonth,
-            booksRead: booksReadInReplayMonth.length || booksRead,
-            pagesRead: pagesReadInReplayMonth || totalPagesRead,
-            quotesCount: quotesInReplayMonth || user.quotes.length,
-            readingCount: booksReading,
+            monthLabel: formattedMonth,
+            year: rYear,
+            booksRead: booksReadInReplayMonth.length,
+            pagesRead: pagesReadInReplayMonth,
+            quotesCount: quotesInReplayMonth,
+            readingCount: booksReadingInMonth,
+            books: replayBooks,
           },
         },
         featuredBooks,

@@ -270,6 +270,30 @@ const PORTUGUESE_CANONICAL_BOOKS: Record<
       genre: "Fantasia & Aventura",
     },
   ],
+  carrie: [
+    {
+      title: "Carrie, a Estranha",
+      author: "Stephen King",
+      totalPages: 200,
+      coverUrl: "https://covers.openlibrary.org/b/id/9256043-L.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      description: "O primeiro romance de Stephen King narra a trágica história de Carrie White, uma jovem com poderes telecinéticos atormentada pela mãe religiosa e pelos colegas de escola.",
+      genre: "Terror & Horror",
+    },
+  ],
+  misery: [
+    {
+      title: "Misery: Louca Obsessão",
+      author: "Stephen King",
+      totalPages: 328,
+      coverUrl: "https://covers.openlibrary.org/b/id/8314130-M.jpg",
+      language: "Português 🇧🇷",
+      format: "Físico",
+      description: "Paul Sheldon, um famoso escritor, sofre um grave acidente e é resgatado por sua fã número um, Annie Wilkes.",
+      genre: "Suspense & Mistério",
+    },
+  ],
 };
 
 function inferGenre(title: string, author?: string): string {
@@ -415,6 +439,13 @@ const FAMOUS_TRANSLATIONS: Record<string, string> = {
   "brave new world": "Admirável Mundo Novo",
   "to kill a mockingbird": "O Sol é Para Todos",
   "dune": "Duna (Duna, #1)",
+  "carrie": "Carrie, a Estranha",
+  "misery": "Misery: Louca Obsessão",
+  "the shining": "O Iluminado",
+  "it": "It: A Coisa",
+  "pet sematary": "O Cemitério",
+  "salem's lot": "A Hora do Vampiro",
+  "the stand": "A Dança da Morte",
 };
 
 function formatAuthorSlug(slug?: string): string {
@@ -588,6 +619,114 @@ async function searchEstanteVirtual(query: string): Promise<BookSearchResult[]> 
   }
 }
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stripLeadingArticles(text: string): string {
+  return text.replace(/^(o|a|os|as|um|uma|uns|umas|the|an)\s+/i, "");
+}
+
+function computeRelevanceScore(book: BookSearchResult, query: string): number {
+  const normQuery = normalizeText(query);
+  const normTitle = normalizeText(book.title || "");
+  const normAuthor = normalizeText(book.author || "");
+  const stripTitle = stripLeadingArticles(normTitle);
+  const stripQuery = stripLeadingArticles(normQuery);
+
+  let score = 0;
+
+  // 1. Título exato
+  if (normTitle === normQuery) {
+    score += 1200;
+  } else if (
+    stripTitle === stripQuery ||
+    stripTitle === normQuery ||
+    normTitle === stripQuery
+  ) {
+    score += 1050;
+  }
+  // 2. Título começa com o termo de busca
+  else if (normTitle.startsWith(normQuery)) {
+    score += 750;
+  } else if (
+    stripTitle.startsWith(normQuery) ||
+    stripTitle.startsWith(stripQuery)
+  ) {
+    score += 700;
+  }
+  // 3. A busca começa com o título (ex: busca por "carrie a estranha stephen king")
+  else if (normQuery.startsWith(normTitle) || stripQuery.startsWith(stripTitle)) {
+    score += 600;
+  }
+  // 4. Palavra inteira presente no título
+  else {
+    const escaped = normQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const wordRegex = new RegExp(`\\b${escaped}\\b`, "i");
+    if (wordRegex.test(normTitle)) {
+      const idx = normTitle.indexOf(normQuery);
+      score += Math.max(100, 450 - Math.min(250, idx * 6));
+    } else if (normTitle.includes(normQuery)) {
+      score += 200;
+    }
+  }
+
+  // Palavras individuais da busca presentes no título
+  const queryWords = normQuery.split(" ").filter((w) => w.length > 1);
+  if (queryWords.length > 1) {
+    const matchingWords = queryWords.filter((w) => normTitle.includes(w)).length;
+    if (matchingWords === queryWords.length) {
+      score += 300;
+    } else {
+      score += matchingWords * 60;
+    }
+  }
+
+  // Correspondência de Autor
+  if (normAuthor === normQuery) {
+    score += 500;
+  } else if (normAuthor.startsWith(normQuery) || normQuery.includes(normAuthor)) {
+    score += 350;
+  } else {
+    const authorWords = normAuthor.split(" ").filter((w) => w.length > 2);
+    const matchingAuthorWords = authorWords.filter((w) =>
+      normQuery.includes(w)
+    ).length;
+    if (matchingAuthorWords > 0) {
+      score += matchingAuthorWords * 150;
+    }
+  }
+
+  // Bônus de concisão (título curto e direto mais fiel à busca)
+  if (normTitle.includes(normQuery) || normQuery.includes(normTitle)) {
+    const lenDiff = Math.abs(normTitle.length - normQuery.length);
+    score += Math.max(0, 80 - lenDiff * 2);
+  }
+
+  // Priorização por idioma em Português
+  if (book.language && book.language.includes("Português")) {
+    score += 150;
+  }
+
+  // Bônus se tiver imagem de capa válida
+  if (book.coverUrl) {
+    score += 80;
+  }
+
+  // Bônus se for obra do catálogo canônico
+  if (book.id.startsWith("canon_")) {
+    score += 60;
+  }
+
+  return score;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -655,24 +794,27 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2. Consulta Open Library (catálogo internacional e traduções com metadados e capas oficiais)
-    try {
-      const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
-        cleanQuery
-      )}&limit=12&fields=key,title,author_name,number_of_pages_median,cover_i,language,first_publish_year,series_name,series_position,isbn`;
+    // 2. Consulta concorrente em paralelo: Open Library + Estante Virtual
+    const [olResult, evResult] = await Promise.allSettled([
+      // A. Open Library (catálogo internacional e traduções)
+      (async (): Promise<BookSearchResult[]> => {
+        const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+          cleanQuery
+        )}&limit=12&fields=key,title,author_name,number_of_pages_median,cover_i,language,first_publish_year,series_name,series_position,isbn`;
 
-      const olRes = await fetch(olUrl, {
-        headers: {
-          "User-Agent": "FarolApp/1.0 (farol.pampo.tech)",
-          Accept: "application/json",
-        },
-        signal: AbortSignal.timeout(4000),
-        next: { revalidate: 3600 },
-      });
+        const olRes = await fetch(olUrl, {
+          headers: {
+            "User-Agent": "FarolApp/1.0 (farol.pampo.tech)",
+            Accept: "application/json",
+          },
+          signal: AbortSignal.timeout(8000),
+          next: { revalidate: 3600 },
+        });
 
-      if (olRes.ok) {
+        if (!olRes.ok) return [];
         const olData = await olRes.json();
         const docs: OpenLibraryDoc[] = olData.docs || [];
+        const olBooks: BookSearchResult[] = [];
 
         for (const doc of docs) {
           const rawTitle = doc.title || "";
@@ -708,18 +850,11 @@ export async function GET(req: Request) {
             ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
             : null;
 
-          // Evita duplicar se já adicionado pelo catálogo canônico
-          const isDuplicate = results.some(
-            (r) =>
-              r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
-              finalTitle.toLowerCase().replace(/[^a-z0-9]/g, "")
-          );
-
-          if (!isDuplicate && finalTitle) {
+          if (finalTitle) {
             const author = doc.author_name
               ? doc.author_name.slice(0, 2).join(", ")
               : "Autor desconhecido";
-            results.push({
+            olBooks.push({
               id: `ol_${doc.key.replace("/works/", "")}`,
               title: finalTitle,
               author,
@@ -736,15 +871,18 @@ export async function GET(req: Request) {
             });
           }
         }
-      }
-    } catch (olErr) {
-      console.warn("Falha na consulta Open Library:", olErr);
-    }
+        return olBooks;
+      })(),
 
-    // 3. Consulta complementar Catálogo Nacional (Estante Virtual filtrado)
-    try {
-      const evBooks = await searchEstanteVirtual(cleanQuery);
-      for (const b of evBooks) {
+      // B. Estante Virtual (acervo nacional)
+      (async (): Promise<BookSearchResult[]> => {
+        return await searchEstanteVirtual(cleanQuery);
+      })(),
+    ]);
+
+    // Mescla os resultados de OpenLibrary sem duplicatas
+    if (olResult.status === "fulfilled") {
+      for (const b of olResult.value) {
         const isDuplicate = results.some(
           (r) =>
             r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
@@ -754,15 +892,31 @@ export async function GET(req: Request) {
           results.push(b);
         }
       }
-    } catch (evErr) {
-      console.warn("Falha na consulta do acervo nacional:", evErr);
+    } else {
+      console.warn("Falha na consulta Open Library:", olResult.reason);
     }
 
-    // 3. Ordenação inteligente: colocar livros em Português 🇧🇷 no topo!
+    // Mescla os resultados da Estante Virtual sem duplicatas
+    if (evResult.status === "fulfilled") {
+      for (const b of evResult.value) {
+        const isDuplicate = results.some(
+          (r) =>
+            r.title.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+            b.title.toLowerCase().replace(/[^a-z0-9]/g, "")
+        );
+        if (!isDuplicate) {
+          results.push(b);
+        }
+      }
+    } else {
+      console.warn("Falha na consulta Estante Virtual:", evResult.reason);
+    }
+
+    // 3. Ordenação inteligente por relevância textual, exatidão e idioma
     results.sort((a, b) => {
-      const aIsPt = a.language.includes("Português") ? 1 : 0;
-      const bIsPt = b.language.includes("Português") ? 1 : 0;
-      return bIsPt - aIsPt;
+      const scoreA = computeRelevanceScore(a, cleanQuery);
+      const scoreB = computeRelevanceScore(b, cleanQuery);
+      return scoreB - scoreA;
     });
 
     // 4. Aplicação de filtros de idioma e formato

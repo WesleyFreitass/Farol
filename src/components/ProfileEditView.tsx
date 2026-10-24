@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   Upload,
   Image as ImageIcon,
@@ -84,6 +84,31 @@ export function ProfileEditView({
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+
+  const availableReplayMonths = useMemo(() => {
+    const list: { value: string; label: string }[] = [
+      { value: "current", label: "Mês Atual / Dinâmico (Sempre em tempo real)" },
+    ];
+    const now = new Date();
+    for (let i = 0; i < 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const name = d.toLocaleDateString("pt-BR", { month: "long" });
+      const formatted = name.charAt(0).toUpperCase() + name.slice(1);
+      list.push({
+        value: val,
+        label: `${formatted} / ${d.getFullYear()}`,
+      });
+    }
+    if (
+      replayMonth &&
+      replayMonth !== "current" &&
+      !list.some((item) => item.value === replayMonth)
+    ) {
+      list.push({ value: replayMonth, label: replayMonth });
+    }
+    return list;
+  }, [replayMonth]);
 
   async function handleFileUpload(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -670,17 +695,11 @@ export function ProfileEditView({
                   onChange={(e) => setReplayMonth(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none focus:border-amber-500 cursor-pointer"
                 >
-                  <option value="current">Mês Atual / Dinâmico (Sempre em tempo real)</option>
-                  <option value="2026-10">Outubro / 2026</option>
-                  <option value="2026-09">Setembro / 2026</option>
-                  <option value="2026-08">Agosto / 2026</option>
-                  <option value="2026-07">Julho / 2026</option>
-                  <option value="2026-06">Junho / 2026</option>
-                  <option value="2026-05">Maio / 2026</option>
-                  <option value="2026-04">Abril / 2026</option>
-                  <option value="2026-03">Março / 2026</option>
-                  <option value="2026-02">Fevereiro / 2026</option>
-                  <option value="2026-01">Janeiro / 2026</option>
+                  {availableReplayMonths.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

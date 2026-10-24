@@ -234,6 +234,7 @@ export default function Home() {
             onSelectBook={(book) => setSelectedBook(book)}
             currentUserId={user?.id}
             existingBooks={books}
+            onBookAdded={loadBooks}
             onViewProfile={(targetUserId) => {
               setViewProfileUserId(targetUserId);
               setActiveTab("profile");
@@ -311,7 +312,7 @@ export default function Home() {
             {/* Filter and Search Bar (Item 17) */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8 bg-slate-900/60 p-2 sm:p-3 rounded-2xl border border-slate-800/80">
               {/* Status Tabs */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 {[
                   { id: "ALL", label: "Todos", count: stats.total },
                   { id: "READING", label: "Lendo", count: stats.reading },
