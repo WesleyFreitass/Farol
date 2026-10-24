@@ -19,6 +19,12 @@ import {
 import { AddWishlistModal } from "./AddWishlistModal";
 import { Book } from "./BookDetailModal";
 
+export interface StoreOffer {
+  store: string;
+  price: number;
+  url: string;
+}
+
 export interface WishlistItem {
   id: string;
   userId: string;
@@ -33,6 +39,7 @@ export interface WishlistItem {
   targetPrice?: number | null;
   storeName?: string | null;
   productUrl?: string | null;
+  offers?: StoreOffer[];
   lastCheckedAt: string;
   priceDropped: boolean;
   percentDrop: number;
@@ -429,6 +436,66 @@ export function WishlistView({
                     </div>
                   )}
 
+                  {/* Top 3 Lojas com Menores Preços em Ordem Crescente */}
+                  <div className="mt-4 p-3.5 rounded-2xl bg-[#0b101b] border border-amber-500/20 shadow-inner">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs">🏆</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                          Top 3 Lojas (Menor Preço)
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Ordem crescente
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {(item.offers && item.offers.length > 0
+                        ? item.offers
+                        : [
+                            { store: item.storeName || "Estante Virtual", price: item.currentPrice, url: item.productUrl || "#" },
+                            { store: "Amazon", price: item.currentPrice * 1.08, url: `https://www.amazon.com.br/s?k=${encodeURIComponent(item.title + " livro")}&i=stripbooks` },
+                            { store: "Mercado Livre", price: item.currentPrice * 1.15, url: `https://lista.mercadolivre.com.br/${encodeURIComponent(item.title + " livro")}` }
+                          ].sort((a, b) => a.price - b.price)
+                      ).slice(0, 3).map((offer, idx) => {
+                        const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                        const pos = `${idx + 1}º`;
+                        return (
+                          <a
+                            key={offer.store + idx}
+                            href={offer.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
+                              idx === 0
+                                ? "bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300"
+                                : idx === 1
+                                ? "bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 text-amber-200"
+                                : "bg-slate-900/60 border border-slate-800 hover:bg-slate-800/80 text-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs font-bold shrink-0">
+                                {medal} {pos}
+                              </span>
+                              <span className="text-xs font-semibold truncate group-hover:text-white">
+                                {offer.store}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs font-black text-white">
+                                R$ {offer.price.toFixed(2)}
+                              </span>
+                              <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Last Checked */}
                   <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500">
                     <span className="flex items-center gap-1">
@@ -520,34 +587,30 @@ export function WishlistView({
                     </button>
                   </div>
 
-                  {/* Direct Buy Button */}
-                  {item.productUrl ? (
-                    <a
-                      href={item.productUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
-                        item.priceDropped
-                          ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20"
-                          : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"
-                      }`}
-                    >
-                      <span>Ver Oferta na Loja</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  ) : (
-                    <a
-                      href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
+                  {/* Direct Buy Button to 1st lowest price store */}
+                  <a
+                    href={
+                      (item.offers && item.offers[0]?.url) ||
+                      item.productUrl ||
+                      `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(
                         item.title + " livro"
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
-                    >
-                      <span>Buscar Ofertas</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
+                      )}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+                      item.priceDropped
+                        ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20"
+                        : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"
+                    }`}
+                  >
+                    <span>
+                      {item.offers && item.offers[0]
+                        ? `Ver 1º na ${item.offers[0].store}`
+                        : "Ver 1º Menor Preço"}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
             );

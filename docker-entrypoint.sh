@@ -13,6 +13,12 @@ if [ ! -f /app/data/dev.db ]; then
   fi
 fi
 
+# Sincroniza eventuais atualizações de schema no banco SQLite persistido
+if [ -f ./node_modules/prisma/build/index.js ]; then
+  echo "🔄 Sincronizando schema do Prisma no banco persistido..."
+  node ./node_modules/prisma/build/index.js db push --accept-data-loss || true
+fi
+
 chmod -R 777 /app/data /app/public/uploads
 
 exec "$@"

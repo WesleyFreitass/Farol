@@ -75,7 +75,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl overflow-hidden border border-amber-500/30 bg-[#0d1624] shadow-lg shadow-amber-500/20 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-110" />
+            <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-125" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-white">
             {isRegister ? "Criar sua conta no Farol" : "Bem-vindo de volta ao Farol"}

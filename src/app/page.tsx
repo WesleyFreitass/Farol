@@ -241,8 +241,10 @@ export default function Home() {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
                   <span>Olá, {user.name.split(" ")[0]}!</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo.png" alt="Farol" className="w-8 h-8 rounded-lg object-cover" />
+                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-amber-500/30 bg-[#0d1624] flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-125" />
+                  </div>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">
                   Sua estante possui {books.length} título(s). O que você vai ler hoje?

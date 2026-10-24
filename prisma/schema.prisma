@@ -118,6 +118,7 @@ model WishlistItem {
   targetPrice    Float?
   storeName      String?
   productUrl     String?
+  storeOffers    String?
   lastCheckedAt  DateTime       @default(now())
   priceDropped   Boolean        @default(false)
   percentDrop    Float          @default(0)

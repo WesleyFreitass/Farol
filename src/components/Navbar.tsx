@@ -48,9 +48,9 @@ export function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl overflow-hidden border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/15 bg-[#0d1624]">
+          <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/20 bg-[#0d1624]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-110" />
+            <img src="/logo.png" alt="Farol" className="w-full h-full object-cover scale-125" />
           </div>
           <div>
             <div className="flex items-center gap-2">

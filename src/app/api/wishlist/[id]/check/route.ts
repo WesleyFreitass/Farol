@@ -50,6 +50,7 @@ export async function POST(
         lowestPrice: lowestEver,
         storeName: result.storeName || item.storeName,
         productUrl: result.productUrl || item.productUrl,
+        storeOffers: JSON.stringify(result.offers),
         lastCheckedAt: new Date(),
         priceDropped: hasDropped,
         percentDrop,

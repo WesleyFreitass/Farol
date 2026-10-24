@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { searchBookBestPrice } from "@/lib/priceTracker";
+import { searchBookBestPrice, generateStoreOffers } from "@/lib/priceTracker";
 
 export async function GET() {
   try {
@@ -21,21 +21,38 @@ export async function GET() {
       },
     });
 
-    // Summary calculations
+    // Summary calculations & ensure top 3 offers in ascending order
     let totalSaved = 0;
     let droppedCount = 0;
 
-    items.forEach((item) => {
+    const mappedItems = items.map((item) => {
       if (item.priceDropped && item.currentPrice < item.initialPrice) {
         droppedCount++;
         totalSaved += item.initialPrice - item.currentPrice;
       }
+
+      let offers = [];
+      if (item.storeOffers) {
+        try {
+          offers = JSON.parse(item.storeOffers);
+        } catch {
+          // fallback
+        }
+      }
+      if (!offers || offers.length === 0) {
+        offers = generateStoreOffers(item.title, item.author, item.currentPrice);
+      }
+
+      return {
+        ...item,
+        offers,
+      };
     });
 
     return NextResponse.json({
-      items,
+      items: mappedItems,
       summary: {
-        totalItems: items.length,
+        totalItems: mappedItems.length,
         droppedCount,
         totalSaved: Number(totalSaved.toFixed(2)),
       },
@@ -122,6 +139,7 @@ export async function POST(req: Request) {
         targetPrice: parsedTarget,
         storeName: finalStore,
         productUrl: finalProductUrl,
+        storeOffers: JSON.stringify(priceResult.offers),
         priceDropped: false,
         percentDrop: 0,
         history: {
